@@ -1,0 +1,148 @@
+/* ============================================
+   PDF Viewer Page — Full-screen immersive view
+   ============================================ */
+
+/* Break out of #root max-width to go truly full screen */
+.pdf-viewer-page {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh; /* dynamic viewport height for mobile browser bars */
+  background: #0a0a0a;
+  display: flex;
+  flex-direction: column;
+  z-index: 999;
+  overflow: hidden;
+}
+
+/* Compact top bar */
+.pdf-viewer-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  background: #111113;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  flex-shrink: 0;
+  min-height: 44px;
+}
+
+.pdf-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-primary, #FFD700);
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: rgba(255, 215, 0, 0.08);
+  border: 1px solid rgba(255, 215, 0, 0.15);
+  transition: background 0.2s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.pdf-back-btn:active {
+  background: rgba(255, 215, 0, 0.16);
+}
+
+.pdf-viewer-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #f4f4f5;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+}
+
+/* PDF container fills all remaining space */
+.pdf-viewer-container {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+  min-height: 0; /* critical for flex child to shrink */
+}
+
+/* Force react-pdf-viewer to fill its container completely */
+.pdf-viewer-container .rpv-core__viewer,
+.pdf-viewer-container .rpv-core__inner-container {
+  height: 100% !important;
+}
+
+/* Slim down the default-layout toolbar on mobile */
+.pdf-viewer-container .rpv-default-layout__container {
+  height: 100% !important;
+}
+
+.pdf-viewer-container .rpv-default-layout__body {
+  flex: 1 !important;
+  overflow: hidden !important;
+}
+
+/* Make sidebar (thumbnails/bookmarks) overlay instead of pushing on mobile */
+@media (max-width: 768px) {
+  .pdf-viewer-container .rpv-default-layout__sidebar {
+    position: absolute !important;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    z-index: 20;
+    background: #111113 !important;
+    box-shadow: 4px 0 20px rgba(0, 0, 0, 0.5);
+  }
+
+  /* Compact toolbar on mobile */
+  .pdf-viewer-container .rpv-toolbar {
+    padding: 4px 8px !important;
+  }
+}
+
+/* Loading overlay */
+.pdf-viewer-loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: #0a0a0a;
+  color: #a1a1aa;
+  font-size: 14px;
+  font-weight: 500;
+  z-index: 10;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.pdf-spinner {
+  animation: spin 1s linear infinite;
+  color: var(--color-primary, #FFD700);
+}
+
+/* Google Docs Viewer fallback iframe — truly full size */
+.pdf-viewer-google-frame {
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: #fff;
+}
+
+.pdf-viewer-empty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  color: #71717a;
+  font-size: 14px;
+}

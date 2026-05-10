@@ -1,0 +1,119 @@
+[
+  {
+    "id": "cd-unit-1-questions",
+    "unitId": "cd-unit-1",
+    "subjectId": "compiler-design",
+    "questions": [
+      {
+        "category": "Introduction to Compilers",
+        "question": "Explain the different phases of a compiler with a neat diagram.",
+        "answer": "A compiler processes source code through six main phases:\n\n1. Lexical Analysis: The scanner reads source code character by character and produces tokens. It removes whitespace and comments.\n\n2. Syntax Analysis: The parser takes tokens and builds a parse tree (or abstract syntax tree). It checks if the token arrangement follows the grammar rules.\n\n3. Semantic Analysis: Checks for semantic errors like type mismatches, undeclared variables, and scope violations. It annotates the AST with type information.\n\n4. Intermediate Code Generation: Produces an intermediate representation (like three-address code) that is machine-independent.\n\n5. Code Optimization: Improves the intermediate code for better performance without changing its meaning. Techniques include constant folding, dead code elimination, and loop optimization.\n\n6. Code Generation: Produces the final target machine code. It handles register allocation, instruction selection, and instruction scheduling."
+      },
+      {
+        "category": "Introduction to Compilers",
+        "question": "Differentiate between a compiler and an interpreter.",
+        "answer": "A compiler translates the entire source code into machine code before execution, creating an executable file. An interpreter executes the source code line by line without creating a separate executable.\n\nKey differences:\n- Speed: Compiled programs run faster as translation is done beforehand\n- Error Detection: Compilers show all errors after compilation; interpreters stop at the first error\n- Memory: Compilers generate object code requiring memory; interpreters don't produce object code\n- Examples: C, C++ use compilers; Python, JavaScript use interpreters\n- Debugging: Interpreters are better for debugging as they execute line by line"
+      },
+      {
+        "category": "Lexical Analysis",
+        "question": "What are the functions of a lexical analyzer? Explain with examples.",
+        "answer": "The lexical analyzer (scanner) performs several important functions:\n\n1. Tokenization: Converts the input stream into a sequence of tokens. For example, 'int x = 5;' produces tokens: <keyword, int>, <identifier, x>, <operator, =>, <number, 5>, <semicolon, ;>\n\n2. Stripping: Removes whitespace characters, newlines, tabs, and comments from the source code.\n\n3. Symbol Table Management: Stores information about identifiers in the symbol table, including their type, scope, and memory location.\n\n4. Error Reporting: Detects and reports lexical errors such as invalid characters or malformed tokens.\n\n5. Correlating error messages with line numbers in the source program for debugging purposes."
+      },
+      {
+        "category": "Semantic Analysis",
+        "question": "Describe the role of semantic analysis in the compilation process.",
+        "answer": "Semantic analysis is the third phase of compilation that ensures the meaningfulness of the source program. Its primary responsibilities include:\n\n1. Type Checking: Verifying that operations are performed on compatible types. For example, ensuring you don't add a string to an integer without explicit conversion.\n\n2. Scope Resolution: Determining the scope of variables and ensuring that variables are declared before use within the correct scope.\n\n3. Array Bound Checking: Verifying that array accesses are within valid bounds when determinable at compile time.\n\n4. Flow Control Checking: Ensuring break/continue statements are within loops, return statements match function signatures.\n\n5. Coercion: Performing implicit type conversions where the language allows them, such as int to float."
+      }
+    ]
+  },
+  {
+    "id": "cd-unit-2-questions",
+    "unitId": "cd-unit-2",
+    "subjectId": "compiler-design",
+    "questions": [
+      {
+        "category": "Top Down Parsing",
+        "question": "Explain recursive descent parsing with an example.",
+        "answer": "Recursive descent parsing is a top-down parsing technique where each non-terminal in the grammar has a corresponding recursive function. The parser starts from the start symbol and tries to derive the input string.\n\nExample for grammar: E → T + E | T, T → id\n\nFunction parseE() {\n  parseT();\n  if (lookahead == '+') {\n    match('+');\n    parseE();\n  }\n}\n\nFunction parseT() {\n  if (lookahead == 'id') {\n    match('id');\n  } else error();\n}\n\nAdvantages: Simple to implement, good error messages.\nDisadvantages: May require backtracking, left recursion must be eliminated."
+      },
+      {
+        "category": "Predictive Parsing",
+        "question": "Construct the LL(1) parsing table for a given grammar.",
+        "answer": "To construct an LL(1) parsing table:\n\n1. Compute FIRST sets for all non-terminals: FIRST(α) is the set of terminals that can appear as the first symbol of any string derived from α.\n\n2. Compute FOLLOW sets: FOLLOW(A) is the set of terminals that can appear immediately after A in some sentential form.\n\n3. For each production A → α:\n   - For each terminal 'a' in FIRST(α), add A → α to M[A, a]\n   - If ε is in FIRST(α), add A → α to M[A, b] for each b in FOLLOW(A)\n\n4. Empty entries indicate syntax errors.\n\nIf any cell has multiple entries, the grammar is not LL(1) and cannot be parsed by a predictive parser."
+      }
+    ]
+  },
+  {
+    "id": "wad-unit-1-questions",
+    "unitId": "wad-unit-1",
+    "subjectId": "web-application-development",
+    "questions": [
+      {
+        "category": "Introduction to HTML",
+        "question": "What does HTML stand for? Explain different HTML attributes.",
+        "answer": "HTML stands for HyperText Markup Language. It is the standard markup language for creating web pages and web applications.\n\nHTML attributes provide additional information about HTML elements:\n\n1. Global Attributes: class, id, style, title, lang - applicable to all elements\n2. Input Attributes: type, value, placeholder, required, disabled - for form inputs\n3. Link Attributes: href, target, rel - for anchor and link elements\n4. Image Attributes: src, alt, width, height - for image elements\n5. Event Attributes: onclick, onchange, onsubmit - for event handling\n\nAttributes are always specified in the opening tag and usually come in name-value pairs like name='value'."
+      },
+      {
+        "category": "Introduction to HTML",
+        "question": "Draft a basic HTML page that includes a form to book a railway ticket.",
+        "answer": "A railway ticket booking form would include:\n\n- Form element with action and method attributes\n- Input fields for: passenger name (text), age (number), gender (radio buttons)\n- Select dropdowns for: source station, destination station, class (1AC, 2AC, Sleeper)\n- Date picker for journey date\n- Number input for number of passengers\n- Textarea for special requirements\n- Submit button\n\nThe form should use proper labels, fieldsets for grouping related inputs, and HTML5 validation attributes like required, min, max, and pattern for client-side validation."
+      },
+      {
+        "category": "Introduction to CSS",
+        "question": "Differentiate between background and background-color attributes of CSS.",
+        "answer": "The background-color property sets only the background color of an element:\nbackground-color: #f0f0f0;\n\nThe background property is a shorthand that can set multiple background-related properties in one declaration:\nbackground: #f0f0f0 url('image.png') no-repeat center/cover;\n\nKey differences:\n1. Scope: background-color only sets color; background sets color, image, position, repeat, size, and more\n2. Shorthand: background resets all sub-properties when used; background-color only affects color\n3. Specificity: Both have the same specificity, but background can override background-color if declared after it\n4. Best Practice: Use background-color when only setting color, use background for multiple properties"
+      }
+    ]
+  },
+  {
+    "id": "ai-unit-1-questions",
+    "unitId": "ai-unit-1",
+    "subjectId": "artificial-intelligence",
+    "questions": [
+      {
+        "category": "Foundations of AI",
+        "question": "Define Artificial Intelligence and explain its different types.",
+        "answer": "Artificial Intelligence is the simulation of human intelligence by computer systems. It involves learning (acquiring information), reasoning (using rules to reach conclusions), and self-correction.\n\nTypes of AI:\n1. Narrow AI (Weak AI): Designed for specific tasks like voice assistants, recommendation systems, and image recognition.\n2. General AI (Strong AI): Hypothetical AI with human-level intelligence across all domains.\n3. Super AI: Theoretical AI surpassing human intelligence in all aspects.\n\nBased on functionality:\n- Reactive Machines: No memory, react to current input (e.g., Deep Blue)\n- Limited Memory: Use past data for decisions (e.g., self-driving cars)\n- Theory of Mind: Understanding human emotions (research stage)\n- Self Awareness: Conscious AI (purely theoretical)"
+      },
+      {
+        "category": "Intelligent Agents",
+        "question": "Explain the concept of intelligent agents with PEAS description.",
+        "answer": "An intelligent agent perceives its environment through sensors and acts through actuators. PEAS stands for Performance measure, Environment, Actuators, and Sensors.\n\nExample - Self-Driving Car:\n- Performance: Safety, destination reach time, comfort, fuel efficiency\n- Environment: Roads, traffic, pedestrians, weather conditions\n- Actuators: Steering wheel, accelerator, brake, signals\n- Sensors: Cameras, LIDAR, GPS, speedometer, microphones\n\nAgent Types:\n1. Simple Reflex: Acts based on current percept only\n2. Model-based Reflex: Maintains internal state\n3. Goal-based: Has goals to achieve\n4. Utility-based: Maximizes utility function\n5. Learning: Improves performance over time"
+      }
+    ]
+  },
+  {
+    "id": "cns-unit-1-questions",
+    "unitId": "cns-unit-1",
+    "subjectId": "cryptography-network-security",
+    "questions": [
+      {
+        "category": "Introduction to Cryptography",
+        "question": "Explain the difference between symmetric and asymmetric encryption.",
+        "answer": "Symmetric Encryption:\n- Uses the same key for both encryption and decryption\n- Faster than asymmetric encryption\n- Key distribution is a challenge\n- Examples: AES, DES, 3DES, Blowfish\n- Used for bulk data encryption\n\nAsymmetric Encryption:\n- Uses a pair of keys: public key (encryption) and private key (decryption)\n- Slower but solves key distribution problem\n- Examples: RSA, ECC, Diffie-Hellman\n- Used for key exchange, digital signatures, authentication\n\nKey Differences:\n1. Speed: Symmetric is 100-1000x faster\n2. Key Management: Symmetric requires secure channel; asymmetric uses public key infrastructure\n3. Key Length: Symmetric uses shorter keys (128-256 bit); asymmetric uses longer keys (2048-4096 bit)\n4. Use Case: Symmetric for data encryption; asymmetric for authentication and key exchange"
+      },
+      {
+        "category": "Basic Ciphers",
+        "question": "Explain the Caesar cipher with a suitable example.",
+        "answer": "The Caesar cipher is one of the simplest substitution ciphers where each letter in the plaintext is shifted by a fixed number of positions in the alphabet.\n\nExample with shift of 3:\nPlaintext:  HELLO WORLD\nCiphertext: KHOOR ZRUOG\n\nEncryption formula: C = (P + K) mod 26\nDecryption formula: P = (C - K) mod 26\n\nWhere P is plaintext letter position, C is ciphertext letter position, K is the key (shift value).\n\nWeaknesses:\n1. Only 25 possible keys (easily brute-forced)\n2. Preserves letter frequency distribution\n3. Vulnerable to frequency analysis\n4. No diffusion - each letter encrypted independently\n\nDespite being insecure, it demonstrates fundamental concepts of substitution ciphers."
+      }
+    ]
+  },
+  {
+    "id": "dsa-unit-1-questions",
+    "unitId": "dsa-unit-1",
+    "subjectId": "data-structures",
+    "questions": [
+      {
+        "category": "Arrays",
+        "question": "Compare arrays and linked lists in terms of operations and memory.",
+        "answer": "Arrays vs Linked Lists:\n\n1. Memory Allocation:\n   - Arrays: Contiguous memory, fixed or dynamic size\n   - Linked Lists: Non-contiguous, dynamic allocation per node\n\n2. Access Time:\n   - Arrays: O(1) random access via index\n   - Linked Lists: O(n) sequential access\n\n3. Insertion/Deletion:\n   - Arrays: O(n) due to shifting elements\n   - Linked Lists: O(1) at known position (O(n) to find position)\n\n4. Memory Overhead:\n   - Arrays: No extra memory per element\n   - Linked Lists: Extra pointer space per node\n\n5. Cache Performance:\n   - Arrays: Excellent (contiguous memory)\n   - Linked Lists: Poor (scattered memory)\n\n6. Use Cases:\n   - Arrays: When size is known, frequent access needed\n   - Linked Lists: When frequent insertion/deletion needed"
+      },
+      {
+        "category": "Linked Lists",
+        "question": "Write an algorithm to reverse a singly linked list.",
+        "answer": "Algorithm to reverse a singly linked list:\n\nUsing iterative approach:\n1. Initialize three pointers: prev = NULL, current = head, next = NULL\n2. While current is not NULL:\n   a. next = current->next (save next node)\n   b. current->next = prev (reverse the link)\n   c. prev = current (move prev forward)\n   d. current = next (move current forward)\n3. head = prev (update head to new first node)\n\nTime Complexity: O(n) - traverses list once\nSpace Complexity: O(1) - uses constant extra space\n\nRecursive approach:\n1. Base case: if head is NULL or head->next is NULL, return head\n2. Recursively reverse rest of list\n3. Set head->next->next = head\n4. Set head->next = NULL\n5. Return new head\n\nTime: O(n), Space: O(n) due to recursion stack"
+      }
+    ]
+  }
+]

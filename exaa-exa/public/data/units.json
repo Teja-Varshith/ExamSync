@@ -1,0 +1,153 @@
+[
+  {
+    "id": "cd-unit-1",
+    "subjectId": "compiler-design",
+    "unitNumber": 1,
+    "title": "Introduction to Compilers",
+    "topicCount": 6
+  },
+  {
+    "id": "cd-unit-2",
+    "subjectId": "compiler-design",
+    "unitNumber": 2,
+    "title": "Top Down Parsers",
+    "topicCount": 5
+  },
+  {
+    "id": "cd-unit-3",
+    "subjectId": "compiler-design",
+    "unitNumber": 3,
+    "title": "Bottom Up Parsers",
+    "topicCount": 4
+  },
+  {
+    "id": "cd-unit-4",
+    "subjectId": "compiler-design",
+    "unitNumber": 4,
+    "title": "Lexical Analysis",
+    "topicCount": 5
+  },
+  {
+    "id": "cd-unit-5",
+    "subjectId": "compiler-design",
+    "unitNumber": 5,
+    "title": "Bootstrapping Compiler",
+    "topicCount": 3
+  },
+
+  {
+    "id": "ai-unit-1",
+    "subjectId": "artificial-intelligence",
+    "unitNumber": 1,
+    "title": "Introduction to AI",
+    "topicCount": 5
+  },
+  {
+    "id": "ai-unit-2",
+    "subjectId": "artificial-intelligence",
+    "unitNumber": 2,
+    "title": "Search Algorithms",
+    "topicCount": 6
+  },
+  {
+    "id": "ai-unit-3",
+    "subjectId": "artificial-intelligence",
+    "unitNumber": 3,
+    "title": "Knowledge Representation",
+    "topicCount": 4
+  },
+  {
+    "id": "ai-unit-4",
+    "subjectId": "artificial-intelligence",
+    "unitNumber": 4,
+    "title": "Machine Learning Basics",
+    "topicCount": 5
+  },
+
+  {
+    "id": "wad-unit-1",
+    "subjectId": "web-application-development",
+    "unitNumber": 1,
+    "title": "Introduction to HTML & CSS",
+    "topicCount": 5
+  },
+  {
+    "id": "wad-unit-2",
+    "subjectId": "web-application-development",
+    "unitNumber": 2,
+    "title": "JavaScript Fundamentals",
+    "topicCount": 6
+  },
+  {
+    "id": "wad-unit-3",
+    "subjectId": "web-application-development",
+    "unitNumber": 3,
+    "title": "React & Modern Frameworks",
+    "topicCount": 5
+  },
+
+  {
+    "id": "cns-unit-1",
+    "subjectId": "cryptography-network-security",
+    "unitNumber": 1,
+    "title": "Introduction to Cryptography",
+    "topicCount": 4
+  },
+  {
+    "id": "cns-unit-2",
+    "subjectId": "cryptography-network-security",
+    "unitNumber": 2,
+    "title": "Block Ciphers",
+    "topicCount": 5
+  },
+  {
+    "id": "cns-unit-3",
+    "subjectId": "cryptography-network-security",
+    "unitNumber": 3,
+    "title": "AES and DES",
+    "topicCount": 4
+  },
+  {
+    "id": "cns-unit-4",
+    "subjectId": "cryptography-network-security",
+    "unitNumber": 4,
+    "title": "SHA and Modern Cryptography",
+    "topicCount": 5
+  },
+  {
+    "id": "cns-unit-5",
+    "subjectId": "cryptography-network-security",
+    "unitNumber": 5,
+    "title": "Advanced Ciphers and Future",
+    "topicCount": 3
+  },
+
+  {
+    "id": "dsa-unit-1",
+    "subjectId": "data-structures",
+    "unitNumber": 1,
+    "title": "Arrays and Linked Lists",
+    "topicCount": 5
+  },
+  {
+    "id": "dsa-unit-2",
+    "subjectId": "data-structures",
+    "unitNumber": 2,
+    "title": "Stacks and Queues",
+    "topicCount": 4
+  },
+  {
+    "id": "dsa-unit-3",
+    "subjectId": "data-structures",
+    "unitNumber": 3,
+    "title": "Trees and Graphs",
+    "topicCount": 6
+  },
+  {
+    "id": "dsa-unit-4",
+    "subjectId": "data-structures",
+    "unitNumber": 4,
+    "title": "Sorting and Searching",
+    "topicCount": 5
+  }
+]

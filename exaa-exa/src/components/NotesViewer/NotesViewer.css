@@ -1,0 +1,113 @@
+.notes-viewer {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  border: 1px solid var(--color-border-light);
+  margin-top: var(--space-md);
+}
+
+.notes-viewer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: var(--space-lg);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-bg-alt);
+}
+
+.notes-viewer-title {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text);
+  line-height: var(--line-height-tight);
+}
+
+.notes-viewer-actions {
+  display: flex;
+  gap: var(--space-sm);
+}
+
+.btn-save {
+  padding: 6px 12px;
+  background-color: var(--color-primary);
+  color: white;
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  transition: all var(--transition-fast);
+}
+
+.btn-save:active {
+  transform: scale(0.95);
+}
+
+.notes-viewer-body {
+  padding: var(--space-lg);
+  background: var(--color-surface);
+}
+
+.notes-viewer-image {
+  width: 100%;
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-xl);
+  height: 200px;
+  object-fit: cover;
+}
+
+.notes-section {
+  margin-bottom: var(--space-xl);
+}
+
+.notes-section:last-child {
+  margin-bottom: 0;
+}
+
+.notes-section-title {
+  font-size: var(--font-size-lg);
+  color: var(--color-primary);
+  margin-bottom: var(--space-sm);
+  padding-bottom: var(--space-xs);
+  border-bottom: 2px solid var(--color-primary-50);
+}
+
+.notes-section p {
+  margin-bottom: var(--space-sm);
+  font-size: var(--font-size-sm);
+}
+
+.notes-section ul {
+  list-style: disc;
+  padding-left: var(--space-lg);
+}
+
+.notes-section li {
+  margin-bottom: var(--space-xs);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-relaxed);
+}
+
+.notes-exam-box {
+  background: var(--color-primary-50);
+  border: 1px solid var(--color-primary-100);
+  padding: var(--space-md);
+  border-radius: var(--radius-sm);
+}
+
+.notes-exam-box li {
+  color: var(--color-primary-dark);
+}
+
+.notes-revision-box {
+  background: var(--color-success-light);
+  border-left: 4px solid var(--color-success);
+  padding: var(--space-md);
+  border-radius: var(--radius-xs) var(--radius-sm) var(--radius-sm) var(--radius-xs);
+}
+
+.notes-revision-box p {
+  color: #065F46; /* text-green-900 */
+  margin: 0;
+  font-weight: var(--font-weight-medium);
+}

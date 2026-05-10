@@ -1,0 +1,57 @@
+[
+  {
+    "id": "compiler-design",
+    "name": "Compiler Design",
+    "code": "CSEN3011",
+    "category": "Program Core",
+    "description": "Compiler design is a complex process that involves multiple stages and requires a deep understanding of both the programming language and the target platform.",
+    "icon": "code",
+    "progress": 30,
+    "color": "#F5A623",
+    "gradient": "linear-gradient(135deg, #F5A623 0%, #F7C948 100%)"
+  },
+  {
+    "id": "artificial-intelligence",
+    "name": "Artificial Intelligence",
+    "code": "CSEN3021",
+    "category": "Program Core",
+    "description": "Artificial Intelligence encompasses the study of intelligent agents, machine learning algorithms, and cognitive computing techniques for solving complex problems.",
+    "icon": "brain",
+    "progress": 55,
+    "color": "#6C63FF",
+    "gradient": "linear-gradient(135deg, #6C63FF 0%, #A78BFA 100%)"
+  },
+  {
+    "id": "web-application-development",
+    "name": "Web Application Development",
+    "code": "CSEN3071",
+    "category": "Program Core",
+    "description": "Web application development covers full-stack technologies including HTML, CSS, JavaScript, and modern frameworks for building scalable web solutions.",
+    "icon": "globe",
+    "progress": 80,
+    "color": "#0EA5E9",
+    "gradient": "linear-gradient(135deg, #0EA5E9 0%, #38BDF8 100%)"
+  },
+  {
+    "id": "cryptography-network-security",
+    "name": "Cryptography and Network Security",
+    "code": "CSEN2021",
+    "category": "Program Core",
+    "description": "Cryptography and network security deals with encryption algorithms, secure communication protocols, and the mathematical foundations of information security.",
+    "icon": "shield",
+    "progress": 50,
+    "color": "#7C3AED",
+    "gradient": "linear-gradient(135deg, #4C1D95 0%, #7C3AED 100%)"
+  },
+  {
+    "id": "data-structures",
+    "name": "Data Structures & Algorithms",
+    "code": "CSEN1011",
+    "category": "Program Elective",
+    "description": "Fundamental study of data organization, management, and storage formats along with efficient algorithms for data manipulation and retrieval.",
+    "icon": "layers",
+    "progress": 65,
+    "color": "#10B981",
+    "gradient": "linear-gradient(135deg, #059669 0%, #34D399 100%)"
+  }
+]

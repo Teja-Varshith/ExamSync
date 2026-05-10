@@ -1,0 +1,189 @@
+[
+  {
+    "id": "cd-unit-1-notes",
+    "unitId": "cd-unit-1",
+    "subjectId": "compiler-design",
+    "sections": [
+      {
+        "title": "Introduction to Compilers",
+        "subtopics": [
+          {
+            "number": "1.1",
+            "title": "Parts of a Compiler",
+            "content": "A compiler is a program that translates source code written in a high-level language into machine code. The major parts include the lexical analyzer (scanner), syntax analyzer (parser), semantic analyzer, intermediate code generator, optimizer, and code generator. Each phase plays a crucial role in transforming the source code step by step.\n\nThe front-end of the compiler handles analysis (lexical, syntax, semantic), while the back-end handles synthesis (code generation and optimization). The symbol table and error handler support all phases."
+          },
+          {
+            "number": "1.2",
+            "title": "Stages of a Compiler",
+            "content": "Compilation happens in several stages:\n\n1. Lexical Analysis: Tokenizes the input stream\n2. Syntax Analysis: Builds a parse tree from tokens\n3. Semantic Analysis: Checks for semantic errors and type consistency\n4. Intermediate Code Generation: Produces three-address code or similar IR\n5. Code Optimization: Improves the intermediate code for efficiency\n6. Code Generation: Produces the target machine code\n\nEach stage progressively transforms the information into a form closer to the final output."
+          },
+          {
+            "number": "1.3",
+            "title": "Semantic Analysis",
+            "content": "Semantic analysis is the phase after syntax analysis that checks the source code for semantic consistency. This includes type checking, scope resolution, and ensuring that operations are performed on compatible data types.\n\nThe semantic analyzer uses the syntax tree and symbol table to verify correctness. It annotates the tree with type information and detects errors like undeclared variables, type mismatches, and incorrect function calls."
+          }
+        ]
+      },
+      {
+        "title": "Lexical Analysis Deep Dive",
+        "subtopics": [
+          {
+            "number": "1.4",
+            "title": "Lexical Analysis",
+            "content": "Lexical analysis (scanning) is the first phase of the compiler. It reads the source code character by character and converts it into a stream of tokens. Each token represents a meaningful unit such as a keyword, identifier, operator, or literal.\n\nThe lexical analyzer removes whitespace and comments, and interacts with the symbol table to store identifier information. Tools like LEX can automatically generate lexical analyzers from regular expression specifications."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "cd-unit-2-notes",
+    "unitId": "cd-unit-2",
+    "subjectId": "compiler-design",
+    "sections": [
+      {
+        "title": "Top Down Parsing Techniques",
+        "subtopics": [
+          {
+            "number": "2.1",
+            "title": "Recursive Descent Parsing",
+            "content": "Recursive descent parsing is a top-down parsing method where each non-terminal in the grammar has a corresponding procedure. The parser starts from the start symbol and tries to match the input by recursively expanding non-terminals.\n\nThis method is simple to implement but may suffer from backtracking issues. It works best with LL grammars where the parsing decisions can be made by looking at the current input token."
+          },
+          {
+            "number": "2.2",
+            "title": "Predictive Parsing",
+            "content": "Predictive parsing is a special case of recursive descent parsing that does not require backtracking. It uses a lookahead token to determine which production rule to apply.\n\nLL(1) parsing is the most common form of predictive parsing, where the first 'L' means left-to-right scanning, the second 'L' means leftmost derivation, and '1' means one token of lookahead."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "ai-unit-1-notes",
+    "unitId": "ai-unit-1",
+    "subjectId": "artificial-intelligence",
+    "sections": [
+      {
+        "title": "Foundations of AI",
+        "subtopics": [
+          {
+            "number": "1.1",
+            "title": "What is Artificial Intelligence?",
+            "content": "Artificial Intelligence (AI) is the field of computer science dedicated to creating systems that can perform tasks normally requiring human intelligence. These tasks include visual perception, speech recognition, decision-making, and language translation.\n\nAI can be categorized into Narrow AI (designed for specific tasks) and General AI (hypothetical systems with human-level intelligence). Modern AI primarily focuses on narrow AI applications using machine learning techniques."
+          },
+          {
+            "number": "1.2",
+            "title": "History and Evolution",
+            "content": "The history of AI begins with Alan Turing's seminal 1950 paper 'Computing Machinery and Intelligence.' The Dartmouth Conference of 1956 officially coined the term 'Artificial Intelligence.' Key milestones include expert systems in the 1980s, IBM Deep Blue defeating Kasparov in 1997, and the deep learning revolution starting around 2012.\n\nThe field has experienced cycles of enthusiasm ('AI summers') and reduced funding ('AI winters'), but recent advances in computing power and data availability have driven unprecedented progress."
+          }
+        ]
+      },
+      {
+        "title": "Intelligent Agents",
+        "subtopics": [
+          {
+            "number": "1.3",
+            "title": "Agent Concepts",
+            "content": "An intelligent agent is an entity that perceives its environment through sensors and acts upon it through actuators. The agent function maps percept sequences to actions. A rational agent aims to maximize its performance measure.\n\nAgents can be classified as simple reflex agents, model-based reflex agents, goal-based agents, utility-based agents, and learning agents, each with increasing levels of sophistication."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "wad-unit-1-notes",
+    "unitId": "wad-unit-1",
+    "subjectId": "web-application-development",
+    "sections": [
+      {
+        "title": "HTML Fundamentals",
+        "subtopics": [
+          {
+            "number": "1.1",
+            "title": "HTML Document Structure",
+            "content": "HTML (HyperText Markup Language) is the standard language for creating web pages. Every HTML document follows a basic structure with <!DOCTYPE html>, <html>, <head>, and <body> elements.\n\nThe <head> section contains metadata like title, character encoding, stylesheets, and scripts. The <body> section contains the visible content of the web page including text, images, links, and forms."
+          },
+          {
+            "number": "1.2",
+            "title": "Semantic Elements",
+            "content": "HTML5 introduced semantic elements that clearly describe their meaning. Elements like <header>, <nav>, <main>, <article>, <section>, <aside>, and <footer> provide structure and meaning to web content.\n\nUsing semantic elements improves accessibility for screen readers, helps with SEO, and makes the code more readable and maintainable."
+          }
+        ]
+      },
+      {
+        "title": "CSS Essentials",
+        "subtopics": [
+          {
+            "number": "1.3",
+            "title": "CSS Selectors and Properties",
+            "content": "CSS (Cascading Style Sheets) is used to control the presentation of HTML elements. Selectors target elements using tag names, classes (.), IDs (#), attributes, and pseudo-classes (:hover, :focus).\n\nKey properties include color, background, margin, padding, border, font, display, position, and flexbox/grid layout properties. The cascade and specificity rules determine which styles are applied when conflicts arise."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "cns-unit-1-notes",
+    "unitId": "cns-unit-1",
+    "subjectId": "cryptography-network-security",
+    "sections": [
+      {
+        "title": "Introduction to Cryptography",
+        "subtopics": [
+          {
+            "number": "1.1",
+            "title": "Cryptography",
+            "content": "Cryptography is the science of secure communication in the presence of adversaries. It encompasses techniques for encryption, decryption, authentication, and integrity verification.\n\nModern cryptography is based on mathematical principles and computational complexity. It ensures confidentiality, integrity, authentication, and non-repudiation of digital information."
+          },
+          {
+            "number": "1.2",
+            "title": "Encryption & Decryption",
+            "content": "Encryption is the process of converting plaintext into ciphertext using an algorithm and a key. Decryption is the reverse process. There are two main types: symmetric-key (same key for both) and asymmetric-key (public-private key pair).\n\nSymmetric algorithms include AES, DES, and 3DES. Asymmetric algorithms include RSA, ECC, and Diffie-Hellman. Each has trade-offs in terms of speed, key management, and security level."
+          },
+          {
+            "number": "1.3",
+            "title": "Basic Ciphers",
+            "content": "Classical ciphers form the foundation of modern cryptography. Caesar cipher shifts letters by a fixed number. Vigenère cipher uses a keyword for polyalphabetic substitution. The Playfair cipher encrypts digraphs using a 5x5 matrix.\n\nThese historical ciphers demonstrate core concepts like substitution, transposition, and key-based transformation, even though they are not secure by modern standards."
+          },
+          {
+            "number": "1.4",
+            "title": "Block Ciphers",
+            "content": "Block ciphers encrypt data in fixed-size blocks (typically 64 or 128 bits). They use a symmetric key and apply multiple rounds of substitution and permutation operations. The Feistel network structure is widely used in block cipher design.\n\nKey concepts include confusion (making the relationship between key and ciphertext complex) and diffusion (spreading plaintext statistics across the ciphertext). These principles, defined by Claude Shannon, are fundamental to secure cipher design."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "dsa-unit-1-notes",
+    "unitId": "dsa-unit-1",
+    "subjectId": "data-structures",
+    "sections": [
+      {
+        "title": "Arrays",
+        "subtopics": [
+          {
+            "number": "1.1",
+            "title": "Introduction to Arrays",
+            "content": "An array is a linear data structure that stores elements of the same type in contiguous memory locations. Arrays provide O(1) random access using index-based addressing.\n\nKey operations include traversal, insertion, deletion, and searching. Static arrays have fixed size, while dynamic arrays (like ArrayList in Java or vectors in C++) can resize automatically."
+          },
+          {
+            "number": "1.2",
+            "title": "Multi-dimensional Arrays",
+            "content": "Multi-dimensional arrays extend the concept to two or more dimensions. A 2D array can be visualized as a matrix with rows and columns.\n\nMemory layout can be row-major (C, C++) or column-major (Fortran). Understanding memory layout is important for cache-efficient programming and performance optimization."
+          }
+        ]
+      },
+      {
+        "title": "Linked Lists",
+        "subtopics": [
+          {
+            "number": "1.3",
+            "title": "Singly Linked Lists",
+            "content": "A singly linked list consists of nodes where each node contains data and a pointer to the next node. Unlike arrays, linked lists provide dynamic memory allocation and efficient insertion/deletion.\n\nKey operations include insertion at head/tail/position, deletion, searching, and reversal. The time complexity for search is O(n), while insertion/deletion at a known position is O(1)."
+          }
+        ]
+      }
+    ]
+  }
+]

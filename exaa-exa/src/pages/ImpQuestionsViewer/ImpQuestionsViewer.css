@@ -1,0 +1,426 @@
+/* ══════════════════════════════════════════════════════════════
+   ImpQuestionsViewer – Pakka Pass Questions Viewer
+   ══════════════════════════════════════════════════════════════ */
+
+.iq-page {
+  min-height: 100vh;
+  background: var(--color-bg, #0a0a0f);
+  color: var(--color-text, #e5e5ea);
+  font-family: 'Inter', 'Space Grotesk', system-ui, sans-serif;
+  padding-bottom: 120px;
+}
+
+/* ── Top Bar ── */
+.iq-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  background: rgba(20, 20, 30, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.iq-back-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #e5e5ea;
+  padding: 8px 16px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.iq-back-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.iq-topbar-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.iq-topbar-code {
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(255, 215, 0, 0.8);
+  background: rgba(255, 215, 0, 0.08);
+  padding: 4px 12px;
+  border-radius: 20px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+/* ── Tags Hero (page title) ── */
+.iq-tags-hero {
+  padding: 24px 20px 8px;
+}
+
+.iq-tags-hero__title {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+  margin: 0 0 4px;
+}
+
+.iq-tags-hero__sub {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.4);
+  font-weight: 500;
+  margin: 0;
+}
+
+/* ── Exam Type Tab Buttons ── */
+.iq-exam-tabs {
+  display: flex;
+  gap: 8px;
+  padding: 16px 20px 8px;
+}
+
+.iq-exam-tab {
+  flex: 1;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 700;
+  font-family: inherit;
+  text-align: center;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.iq-exam-tab:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.7);
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+.iq-exam-tab--active {
+  background: linear-gradient(135deg, #FFD700, #FFA500);
+  color: #000;
+  border-color: transparent;
+  box-shadow: 0 4px 16px rgba(255, 215, 0, 0.25);
+}
+
+.iq-exam-tab--active:hover {
+  background: linear-gradient(135deg, #FFD700, #FFA500);
+  color: #000;
+}
+
+/* ── Tag List Rows ── */
+.iq-tag-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 8px;
+}
+
+.iq-tag-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 16px 18px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 14px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  text-align: left;
+  font-family: inherit;
+  color: inherit;
+  animation: iq-fadeIn 0.4s ease both;
+}
+
+.iq-tag-row:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 215, 0, 0.2);
+  transform: translateX(4px);
+}
+
+.iq-tag-row:active {
+  transform: scale(0.99);
+}
+
+.iq-tag-row__info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.iq-tag-row__name {
+  font-size: 15px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.3;
+}
+
+.iq-tag-row__count {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 215, 0, 0.55);
+  letter-spacing: 0.3px;
+}
+
+.iq-tag-row__arrow {
+  flex-shrink: 0;
+  color: rgba(255, 215, 0, 0.6);
+  transition: transform 0.2s ease;
+}
+
+.iq-tag-row:hover .iq-tag-row__arrow {
+  transform: translateX(4px);
+  color: #FFD700;
+}
+
+/* ── Q&A View Header ── */
+.iq-qa-header {
+  padding: 20px 20px 12px;
+}
+
+.iq-qa-exam-badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: #FFD700;
+  background: rgba(255, 215, 0, 0.1);
+  border: 1px solid rgba(255, 215, 0, 0.2);
+  padding: 4px 12px;
+  border-radius: 20px;
+  margin-bottom: 10px;
+}
+
+.iq-qa-title {
+  font-size: 20px;
+  font-weight: 800;
+  margin: 0 0 4px;
+  letter-spacing: -0.2px;
+  color: #f4f4f5;
+}
+
+.iq-qa-count {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.4);
+  font-weight: 500;
+  margin: 0;
+}
+
+/* ── Content Area ── */
+.iq-content {
+  padding: 0 20px;
+}
+
+.iq-loading, .iq-empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 15px;
+}
+
+.iq-empty-reset {
+  margin-top: 12px;
+  padding: 8px 20px;
+  background: rgba(255, 215, 0, 0.1);
+  border: 1px solid rgba(255, 215, 0, 0.25);
+  color: #FFD700;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.iq-empty-reset:hover {
+  background: rgba(255, 215, 0, 0.18);
+}
+
+/* ── Questions List ── */
+.iq-questions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* ── Accordion ── */
+.iq-accordion {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 16px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  animation: iq-fadeIn 0.4s ease both;
+}
+
+@keyframes iq-fadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.iq-accordion:hover {
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.iq-accordion--open {
+  border-color: rgba(255, 215, 0, 0.2);
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+}
+
+.iq-accordion__header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 18px;
+  background: transparent;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+  font-size: 14px;
+}
+
+.iq-accordion__left {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.iq-accordion__num {
+  font-size: 11px;
+  font-weight: 800;
+  color: rgba(255, 215, 0, 0.6);
+  letter-spacing: 0.5px;
+}
+
+.iq-accordion__question {
+  flex: 1;
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.iq-accordion__chevron {
+  flex-shrink: 0;
+  color: rgba(255, 255, 255, 0.3);
+  transition: transform 0.3s ease;
+}
+
+.iq-accordion__chevron--open {
+  transform: rotate(180deg);
+  color: #FFD700;
+}
+
+/* ── Answer Body ── */
+.iq-accordion__body {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.iq-accordion__body--open {
+  max-height: 10000px;
+}
+
+.iq-accordion__answer {
+  padding: 0 18px 18px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  margin-top: 0;
+  padding-top: 16px;
+}
+
+.iq-accordion__answer-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: rgba(255, 215, 0, 0.5);
+  margin-bottom: 10px;
+}
+
+.iq-accordion__answer-content {
+  font-size: 14px;
+  line-height: 1.8;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.iq-accordion__answer-content p {
+  margin: 0 0 10px;
+}
+
+.iq-accordion__answer-content img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 10px;
+  margin: 12px 0;
+}
+
+/* Image wrapper divs from the TipTap editor */
+.iq-accordion__answer-content div[data-type="image-wrapper"] {
+  margin: 12px 0;
+}
+
+.iq-accordion__answer-content div[data-type="image-wrapper"] img {
+  border-radius: 10px;
+  max-width: 100%;
+  height: auto;
+}
+
+.iq-accordion__answer-content strong {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.iq-accordion__answer-content em {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* ── Responsive ── */
+@media (max-width: 480px) {
+  .iq-exam-tabs {
+    gap: 6px;
+    padding: 12px 16px 6px;
+  }
+
+  .iq-exam-tab {
+    padding: 9px 12px;
+    font-size: 13px;
+    border-radius: 10px;
+  }
+
+  .iq-tag-row {
+    padding: 14px 14px;
+  }
+
+  .iq-tag-row__name {
+    font-size: 14px;
+  }
+
+  .iq-accordion__header {
+    padding: 14px 14px;
+    gap: 10px;
+  }
+
+  .iq-accordion__question {
+    font-size: 13px;
+  }
+}

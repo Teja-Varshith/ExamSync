@@ -1,0 +1,467 @@
+/* ============================================================
+   SubjectsPage.css  —  ExamSync  (PayUForward-inspired dark)
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Sans-serif:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600&display=swap');
+
+/* ── Design tokens ─────────────────────────────────────────── */
+:root {
+  --es-bg:           #060608;
+  --es-card:         #13141a;
+  --es-border:       rgba(255, 255, 255, 0.07);
+  --es-text:         #f0f0f5;
+  --es-muted:        rgba(255, 255, 255, 0.38);
+  --es-accent:       #f5c518;
+  --es-accent-bg:    rgba(245, 197, 24, 0.10);
+  --es-accent-border:rgba(245, 197, 24, 0.25);
+  --es-green:        #43d9ad;
+  --font-display:    'Syne', sans-serif;
+  --font-body:       'DM Sans', sans-serif;
+  --r-card:          20px;
+  --r-pill:          100px;
+}
+
+/* ── Page shell ─────────────────────────────────────────────── */
+.es-page {
+  background: var(--es-bg);
+  min-height: 100dvh;
+  font-family: var(--font-body);
+  color: var(--es-text);
+  -webkit-font-smoothing: antialiased;
+  padding-bottom: 48px;
+}
+
+/* ── App bar ────────────────────────────────────────────────── */
+.es-appbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px 12px;
+  background: var(--es-bg);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  border-bottom: 1px solid var(--es-border);
+}
+
+.es-appbar__title {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--es-accent);
+  letter-spacing: -0.2px;
+}
+
+.es-appbar__coins {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--es-accent-bg);
+  border: 1px solid var(--es-accent-border);
+  border-radius: var(--r-pill);
+  padding: 5px 12px;
+}
+
+.es-coins-icon  { font-size: 13px; line-height: 1; }
+
+.es-coins-label {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  color: var(--es-muted);
+  text-transform: uppercase;
+}
+
+.es-coins-value {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--es-accent);
+}
+
+/* ── Main scroll area ───────────────────────────────────────── */
+.es-main {
+  padding: 0 18px;
+}
+
+/* ── Greeting ───────────────────────────────────────────────── */
+.es-header {
+  padding: 6px 0 6px;
+}
+
+.es-header__hey {
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.32em;
+  color: var(--es-muted);
+  text-transform: uppercase;
+  margin: 0 0 4px;
+}
+
+.es-header__name {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.5px;
+  color: var(--es-text);
+  margin: 0 0 6px;
+}
+
+.es-header__sub {
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  color: var(--es-muted);
+  text-transform: uppercase;
+  margin: 0;
+}
+.course_code_arrow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* ── Merged stats + dropdowns card ─────────────────────────── */
+.es-stats-card {
+  background: var(--es-card);
+  border: 1px solid var(--es-border);
+  border-radius: var(--r-card);
+  margin-bottom: 20px;
+  overflow: hidden;
+}
+
+/* Top half — big numbers */
+.es-stats-row {
+  display: grid;
+  grid-template-columns: 1fr 1px 1fr 1px 1fr;
+  align-items: center;
+  padding: 20px 16px 16px;
+  gap: 0;
+}
+
+.es-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+
+.es-stat__label {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  color: var(--es-muted);
+  text-transform: uppercase;
+}
+
+.es-stat__value {
+  font-family: var(--font-display);
+  font-size: 30px;
+  font-weight: 800;
+  color: var(--es-green);
+  line-height: 1;
+}
+
+.es-stat__value--sm {
+  font-size: 20px;
+}
+
+.es-stat-divider {
+  width: 1px;
+  height: 44px;
+  background: var(--es-border);
+  justify-self: center;
+}
+
+/* Hairline between the two halves */
+.es-card-divider {
+  height: 1px;
+  background: var(--es-border);
+  margin: 0 16px;
+}
+
+/* Bottom half — dropdowns */
+.es-dropdowns-row {
+  display: grid;
+  grid-template-columns: 1fr 1px 1fr 1px 1fr;
+  align-items: center;
+  padding: 14px 16px 16px;
+  gap: 0;
+}
+
+.es-dropdown-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.es-dropdown-label {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  color: var(--es-muted);
+  text-transform: uppercase;
+}
+
+.es-dropdown-select {
+  width: 100%;
+  /* background: rgba(255, 255, 255, 0.05); */
+  /* border: 1px solid rgba(255, 255, 255, 0.10); */
+  border-radius: 8px;
+  color: var(--es-text);
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+  padding: 5px 6px;
+  text-align: center;
+  outline: none;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.es-dropdown-select:focus {
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
+.es-dropdown-select option {
+  background: #1a1b22;
+  color: var(--es-text);
+}
+
+.es-dropdown-sep {
+  width: 1px;
+  height: 32px;
+  background: var(--es-border);
+  justify-self: center;
+}
+
+/* ── Category tabs ──────────────────────────────────────────── */
+.es-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.es-tabs::-webkit-scrollbar { display: none; }
+
+.es-tab {
+  flex-shrink: 0;
+  padding: 8px 18px;
+  border-radius: var(--r-pill);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--es-muted);
+  background: var(--es-card);
+  border: 1px solid var(--es-border);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 160ms, color 160ms, border-color 160ms;
+}
+
+.es-tab--active {
+  background: var(--es-accent);
+  color: #000;
+  border-color: var(--es-accent);
+  font-weight: 700;
+}
+
+/* ── Subjects section ───────────────────────────────────────── */
+.es-subjects__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.es-subjects__title {
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.25em;
+  color: var(--es-muted);
+  text-transform: uppercase;
+}
+
+.es-subjects__count {
+  background: var(--es-accent-bg);
+  color: var(--es-accent);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 10px;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--es-accent-border);
+}
+
+/* ── Hero subject card ──────────────────────────────────────── */
+.shc {
+  position: relative;
+  border-radius: var(--r-card);
+  padding: 18px 18px 20px;
+  margin-bottom: 16px;
+  overflow: hidden;
+  cursor: pointer;
+  /* entrance animation */
+  opacity: 0;
+  animation: shcIn 320ms ease forwards;
+  transition: transform 140ms ease, box-shadow 140ms ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.shc:active {
+  transform: scale(0.975);
+}
+
+@keyframes shcIn {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+
+/* Category chip — top left */
+.shc__chip {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  color: rgba(255, 255, 255, 0.92);
+  font-family: var(--font-body);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  padding: 4px 12px;
+  border-radius: var(--r-pill);
+  margin-bottom: 14px;
+}
+
+/* Course code — top right */
+.shc__code {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  font-family: var(--font-body);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.38);
+}
+
+/* Illustration block — sits at the right, between chip row and name */
+.shc__illus {
+  position: absolute;
+  top: 48px;       /* below the chip */
+  right: 14px;
+  width: 96px;
+  height: 96px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.shc__blob {
+  position: absolute;
+  inset: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 50%;
+}
+
+.shc__emoji {
+  position: relative;
+  font-size: 56px;
+  line-height: 1;
+  filter: drop-shadow(0 6px 20px rgba(0, 0, 0, 0.35));
+  z-index: 1;
+}
+
+/* Subject name */
+.shc__name {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 800;
+  color: #ffffff;
+  line-height: 1.2;
+  margin: 0 0 8px;
+  max-width: 68%;   /* prevent overlap with illustration */
+}
+
+/* Description */
+.shc__desc {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.68);
+  line-height: 1.55;
+  margin: 0 0 22px;
+  max-width: 76%;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Footer row */
+.shc__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.shc__explore {
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.shc__arrow {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 160ms;
+  /* no border, no button reset needed — it's a span */
+  user-select: none;
+}
+
+.shc:hover .shc__arrow {
+  background: rgba(255, 255, 255, 0.28);
+}
+
+/* ── Empty state ────────────────────────────────────────────── */
+.es-empty {
+  text-align: center;
+  padding: 52px 0;
+  color: var(--es-muted);
+}
+.es-empty p + p {
+  font-size: 12px;
+  margin-top: 8px;
+}
+
+/* ── Error state ────────────────────────────────────────────── */
+.es-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 64px 20px;
+  color: var(--es-muted);
+  gap: 12px;
+}
+
+.es-retry-btn {
+  background: var(--es-accent);
+  color: #000;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 14px;
+  padding: 10px 28px;
+  border-radius: var(--r-pill);
+  border: none;
+  cursor: pointer;
+}
