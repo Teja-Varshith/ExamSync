@@ -12,6 +12,7 @@ export default function AddSyllabus() {
   const [noOfUnits, setNoOfUnits] = useState(subjectData.noOfUnits || 1);
   const [saving, setSaving] = useState(false);
   const [assetsSaving, setAssetsSaving] = useState(false);
+  const [loadingExamData, setLoadingExamData] = useState(isEditMode);
 
   // Store unit details: { 1: { name: '', topics: '' }, 2: ... }
   const [unitDetails, setUnitDetails] = useState(() => {
@@ -34,6 +35,29 @@ export default function AddSyllabus() {
 
   const [noteItems, setNoteItems] = useState(() => mapToRows(subjectData.notes, 'notes'));
   const [pyqItems, setPyqItems] = useState(() => mapToRows(subjectData.pyqs, 'pyqs'));
+
+  // In edit mode, fetch exam_data (syllabus, notes, pyqs) from sub-collection
+  useEffect(() => {
+    if (!isEditMode || !subjectData.courseCode) return;
+    const fetchExamData = async () => {
+      setLoadingExamData(true);
+      try {
+        const res = await api.getExamData(subjectData.courseCode);
+        const data = res.data || {};
+        if (data.syllabus && Object.keys(data.syllabus).length > 0) {
+          setUnitDetails(data.syllabus);
+          setNoOfUnits(Object.keys(data.syllabus).length);
+        }
+        if (data.notes) setNoteItems(mapToRows(data.notes, 'notes'));
+        if (data.pyqs) setPyqItems(mapToRows(data.pyqs, 'pyqs'));
+      } catch (err) {
+        console.error('Failed to fetch exam data:', err);
+      } finally {
+        setLoadingExamData(false);
+      }
+    };
+    fetchExamData();
+  }, [isEditMode, subjectData.courseCode]);
 
   useEffect(() => {
     document.body.classList.add('admin-mode');
@@ -129,22 +153,26 @@ export default function AddSyllabus() {
         return acc;
       }, {});
 
-      const finalData = {
+      // 1. Save/update metadata (subject document)
+      const metaData = {
         ...subjectData,
         noOfUnits: parseInt(noOfUnits) || 1,
-        // Ensure syllabus uses our new detailed object structure
-        syllabus: unitDetails,
-        notes: notesMap,
-        pyqs: pyqsMap,
       };
 
       if (isEditMode) {
-        await api.updateSubject(subjectData.courseCode, finalData);
-        alert(`✅ Successfully updated "${subjectData.subjectName}" with ${finalData.noOfUnits} units!`);
+        await api.updateSubject(subjectData.courseCode, metaData);
       } else {
-        await api.addSubject(finalData);
-        alert(`✅ Successfully saved "${subjectData.subjectName}" with ${finalData.noOfUnits} units to Firestore!`);
+        await api.addSubject(metaData);
       }
+
+      // 2. Save exam data (exam_data/content sub-collection)
+      await api.updateExamData(subjectData.courseCode || metaData.courseCode, {
+        syllabus: unitDetails,
+        notes: notesMap,
+        pyqs: pyqsMap,
+      });
+
+      alert(`✅ Successfully ${isEditMode ? 'updated' : 'saved'} "${subjectData.subjectName}" with ${metaData.noOfUnits} units!`);
       navigate('/admin');
     } catch (err) {
       console.error('Failed to save subject:', err);
@@ -186,7 +214,10 @@ export default function AddSyllabus() {
         return acc;
       }, {});
 
-      await api.updateSubjectAssets(subjectData.courseCode, notesMap, pyqsMap);
+      await api.updateExamData(subjectData.courseCode, {
+        notes: notesMap,
+        pyqs: pyqsMap,
+      });
       alert('✅ Notes and PYQs saved to Firestore!');
     } catch (err) {
       console.error('Failed to save assets:', err);

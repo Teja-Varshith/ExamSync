@@ -77,14 +77,22 @@ export default function ImpQuestionsViewer() {
     const fetchQuestions = async () => {
       setLoading(true);
       try {
-        const docRef = doc(db, 'college_code', 'admins', 'subjects', normalizedSubjectId);
+        // 1. Read custom tags from subject metadata
+        const docRef = doc(db, 'examsync', 'admins', 'subjects', normalizedSubjectId);
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
           const data = docSnap.data();
-          setImpQuestions(data.ImpQuestions || {});
           if (Array.isArray(data.customTags)) {
             setCustomTags(data.customTags);
           }
+        }
+
+        // 2. Read ImpQuestions from exam_data/ImpQuestions document
+        const examRef = doc(db, 'examsync', 'admins', 'subjects', normalizedSubjectId, 'exam_data', 'ImpQuestions');
+        const examSnap = await getDoc(examRef);
+        if (examSnap.exists()) {
+          const examData = examSnap.data();
+          setImpQuestions(examData.data || examData || {}); // Fallback for old structure if any
         }
       } catch (err) {
         console.error('Failed to fetch ImpQuestions:', err);

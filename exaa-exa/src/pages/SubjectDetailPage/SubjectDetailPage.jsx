@@ -10,7 +10,7 @@ import { calcProgress } from '../../utils/helpers';
 import api from '../../services/api';
 import { Lock, Unlock, Coins, AlertCircle, Eye } from 'lucide-react';
 import { db } from '../../firebase';
-import { doc, getDoc, updateDoc, arrayUnion } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, arrayUnion, setDoc } from 'firebase/firestore';
 import './SubjectDetailPage.css';
 
 export default function SubjectDetailPage() {
@@ -138,14 +138,11 @@ export default function SubjectDetailPage() {
           return;
         }
 
-        // Check paidIds in the subject document
-        const subDocRef = doc(db, 'college_code', 'admins', 'subjects', normalizedSubjectId);
-        const subSnap = await getDoc(subDocRef);
-        if (subSnap.exists()) {
-          const paidIds = subSnap.data().paidIds || [];
-          if (paidIds.includes(storedUserId)) {
-            setIsUnlocked(true);
-          }
+        // Check paid_users sub-collection
+        const paidRef = doc(db, 'examsync', 'admins', 'subjects', normalizedSubjectId, 'paid_users', storedUserId);
+        const paidSnap = await getDoc(paidRef);
+        if (paidSnap.exists()) {
+          setIsUnlocked(true);
         }
 
         // Fetch user's coin balance
@@ -211,11 +208,9 @@ export default function SubjectDetailPage() {
         coins: userCoins - UNLOCK_COST,
       });
 
-      // 2. Add userId to paidIds array in the subject
-      const subDocRef = doc(db, 'college_code', 'admins', 'subjects', normalizedSubjectId);
-      await updateDoc(subDocRef, {
-        paidIds: arrayUnion(storedUserId),
-      });
+      // 2. Add userId to paid_users sub-collection in the subject
+      const paidRef = doc(db, 'examsync', 'admins', 'subjects', normalizedSubjectId, 'paid_users', storedUserId);
+      await setDoc(paidRef, { paidAt: new Date().toISOString() });
 
       // 3. Update local state
       setUserCoins(prev => prev - UNLOCK_COST);

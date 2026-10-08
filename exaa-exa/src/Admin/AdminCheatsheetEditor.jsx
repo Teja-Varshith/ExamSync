@@ -11,6 +11,7 @@ import Placeholder from '@tiptap/extension-placeholder';
 import Underline from '@tiptap/extension-underline';
 import { db } from '../firebase';
 import { doc, getDoc, updateDoc, setDoc, deleteField } from 'firebase/firestore';
+import { getCollegeId } from '../services/api';
 import { uploadImageToSupabase, processHtmlImages } from '../supabase';
 
 // ─── Local Storage Helpers ───────────────────────────────────────
@@ -227,25 +228,30 @@ export default function AdminCheatsheetEditor() {
       setLoadingQuestions(true);
       try {
         if (courseCode) {
-          const docRef = doc(db, 'college_code', 'admins', 'subjects', courseCode);
-          const docSnap = await getDoc(docRef);
+          const cid = getCollegeId();
 
-          if (docSnap.exists()) {
-            const data = docSnap.data();
-
-            // Load custom tags from Firebase
-            if (Array.isArray(data?.customTags) && data.customTags.length > 0) {
-              // Merge defaults with saved custom tags (no duplicates)
-              const merged = [...new Set([...DEFAULT_TAGS, ...data.customTags])];
+          // 1. Read customTags from subject metadata doc
+          const metaRef = doc(db, 'examsync', cid, 'subjects', courseCode);
+          const metaSnap = await getDoc(metaRef);
+          if (metaSnap.exists()) {
+            const metaData = metaSnap.data();
+            if (Array.isArray(metaData?.customTags) && metaData.customTags.length > 0) {
+              const merged = [...new Set([...DEFAULT_TAGS, ...metaData.customTags])];
               setTagOptions(merged);
             }
+          }
 
+          // 2. Read ImpQuestions from exam_data/ImpQuestions document
+          const examRef = doc(db, 'examsync', cid, 'subjects', courseCode, 'exam_data', 'ImpQuestions');
+          const examSnap = await getDoc(examRef);
+
+          if (examSnap.exists()) {
+            const examData = examSnap.data();
             const firebaseKey = examKeyMap[examType] || examType;
-            const examData = data?.ImpQuestions?.[firebaseKey];
+            const impData = examData?.data?.[firebaseKey] || examData?.[firebaseKey];
 
-            if (examData && typeof examData === 'object' && Object.keys(examData).length > 0) {
-              // Convert Firebase map { "1": {question, answer, tag}, ... } → array
-              const firebaseQuestions = Object.entries(examData)
+            if (impData && typeof impData === 'object' && Object.keys(impData).length > 0) {
+              const firebaseQuestions = Object.entries(impData)
                 .sort(([a], [b]) => Number(a) - Number(b))
                 .map(([key, val]) => ({
                   id: `fb_${key}_${Date.now()}`,
@@ -257,7 +263,6 @@ export default function AdminCheatsheetEditor() {
                 }));
 
               setQuestions(firebaseQuestions);
-              // Sync to localStorage so local save/edit works seamlessly
               saveStoredQuestions(courseCode, examType, firebaseQuestions);
               setLoadingQuestions(false);
               return;
@@ -353,9 +358,9 @@ export default function AdminCheatsheetEditor() {
         const originalKey = qToRemove.id.split('_')[1];
         
         if (originalKey) {
-          const docRef = doc(db, 'college_code', 'admins', 'subjects', courseCode);
-          await updateDoc(docRef, {
-            [`ImpQuestions.${firebaseExamKey}.${originalKey}`]: deleteField()
+          const examRef = doc(db, 'examsync', getCollegeId(), 'subjects', courseCode, 'exam_data', 'ImpQuestions');
+          await updateDoc(examRef, {
+            [`data.${firebaseExamKey}.${originalKey}`]: deleteField()
           });
         }
       } catch (err) {
@@ -416,7 +421,8 @@ export default function AdminCheatsheetEditor() {
 
     setUploading(true);
     try {
-      const docRef = doc(db, 'college_code', 'admins', 'subjects', courseCode);
+      const cid = getCollegeId();
+      const examRef = doc(db, 'examsync', cid, 'subjects', courseCode, 'exam_data', 'ImpQuestions');
 
       // Build the numbered map, processing images through Supabase first
       const questionsMap = {};
@@ -436,23 +442,26 @@ export default function AdminCheatsheetEditor() {
       const firebaseExamKey = examKeyMap[examType] || examType;
 
       // Fetch existing ImpQuestions to merge (don't overwrite other exam types)
-      const docSnap = await getDoc(docRef);
+      const examSnap = await getDoc(examRef);
       let existingImpQuestions = {};
-      if (docSnap.exists() && docSnap.data().ImpQuestions) {
-        existingImpQuestions = docSnap.data().ImpQuestions;
+      if (examSnap.exists()) {
+        existingImpQuestions = examSnap.data().data || examSnap.data(); // Fallback for old structure if any
       }
 
       // Merge the new exam type into existing ImpQuestions
       existingImpQuestions[firebaseExamKey] = questionsMap;
 
-      // Save custom tags (non-default ones) alongside ImpQuestions
+      // Save custom tags (non-default ones)
       const customTags = tagOptions.filter(t => !DEFAULT_TAGS.includes(t));
 
-      // Save to Firestore
-      if (docSnap.exists()) {
-        await updateDoc(docRef, { ImpQuestions: existingImpQuestions, customTags });
-      } else {
-        await setDoc(docRef, { ImpQuestions: existingImpQuestions, customTags }, { merge: true });
+      // Save ImpQuestions to exam_data/ImpQuestions
+      await setDoc(examRef, { data: existingImpQuestions }, { merge: true });
+
+      // Save customTags to subject metadata document
+      const metaRef = doc(db, 'examsync', cid, 'subjects', courseCode);
+      const metaSnap = await getDoc(metaRef);
+      if (metaSnap.exists()) {
+        await updateDoc(metaRef, { customTags });
       }
 
       // Clear local storage for this exam

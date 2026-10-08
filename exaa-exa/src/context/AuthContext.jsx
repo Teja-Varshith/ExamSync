@@ -1,4 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import { db } from '../firebase';
+import { doc, getDoc } from 'firebase/firestore';
 
 const AuthContext = createContext(null);
 
@@ -17,17 +19,101 @@ export function AuthProvider({ children }) {
     }
   }, [user]);
 
-  const login = (username, password) => {
-    if (username === 'admin' && password === '123456') {
-      setUser({ username: 'admin', role: 'admin', name: 'Administrator' });
-      return { success: true, role: 'admin' };
+  /**
+   * Admin login: checks Firestore examsync/{collegeId} document for matching credentials.
+   * Student login: if no collegeId is provided, any username logs in as student.
+   */
+  const login = async (username, password, collegeId) => {
+    if (!username.trim()) {
+      return { success: false, error: 'Please enter a username' };
     }
-    // Any other credentials → student
-    if (username.trim()) {
-      setUser({ username: username.trim(), role: 'student', name: username.trim() });
-      return { success: true, role: 'student' };
+
+    // If collegeId is provided, attempt admin login via Firestore
+    if (collegeId && collegeId.trim()) {
+      try {
+        const cid = collegeId.trim().toLowerCase();
+        const collegeRef = doc(db, 'examsync', cid);
+        const collegeSnap = await getDoc(collegeRef);
+
+        if (!collegeSnap.exists()) {
+          return { success: false, error: 'College not found. Check your college code.' };
+        }
+
+        const data = collegeSnap.data();
+        const admins = data.admins || [];
+
+        const matchedAdmin = admins.find(
+          (a) => a.username === username.trim() && a.password === password
+        );
+
+        if (matchedAdmin) {
+          setUser({
+            username: matchedAdmin.username,
+            role: 'admin',
+            name: matchedAdmin.name || 'Administrator',
+            adminRole: matchedAdmin.role || 'Admin',
+            collegeId: cid,
+            collegeName: data.name || cid.toUpperCase(),
+          });
+          return { success: true, role: 'admin' };
+        }
+
+        return { success: false, error: 'Invalid username or password for this college' };
+      } catch (err) {
+        console.error('Admin login error:', err);
+        return { success: false, error: 'Login failed. Please try again.' };
+      }
     }
-    return { success: false, error: 'Please enter a username' };
+
+    // No collegeId → student login (existing behavior)
+    setUser({ username: username.trim(), role: 'student', name: username.trim() });
+    return { success: true, role: 'student' };
+  };
+
+  /**
+   * Author/Examite login: checks if email exists in examsync/{collegeId}/examites array.
+   */
+  const loginAuthor = async (username, password, collegeId) => {
+    if (!username.trim() || !password.trim()) {
+      return { success: false, error: 'Please enter your username and password' };
+    }
+    if (!collegeId || !collegeId.trim()) {
+      return { success: false, error: 'Please enter your college code' };
+    }
+
+    try {
+      const cid = collegeId.trim().toLowerCase();
+      const collegeRef = doc(db, 'examsync', cid);
+      const collegeSnap = await getDoc(collegeRef);
+
+      if (!collegeSnap.exists()) {
+        return { success: false, error: 'College not found. Check your college code.' };
+      }
+
+      const data = collegeSnap.data();
+      const examites = data.examites || [];
+
+      const matchedExamite = examites.find(
+        (e) => e.username.toLowerCase() === username.trim().toLowerCase() && e.password === password
+      );
+
+      if (matchedExamite) {
+        setUser({
+          username: matchedExamite.username,
+          role: 'author',
+          name: matchedExamite.username || 'Author',
+          subjects: matchedExamite.subjects || [],
+          collegeId: cid,
+          collegeName: data.name || cid.toUpperCase(),
+        });
+        return { success: true, role: 'author' };
+      }
+
+      return { success: false, error: 'Invalid username or password as an examite' };
+    } catch (err) {
+      console.error('Author login error:', err);
+      return { success: false, error: 'Login failed. Please try again.' };
+    }
   };
 
   const logout = () => {
@@ -35,10 +121,11 @@ export function AuthProvider({ children }) {
   };
 
   const isAdmin = user?.role === 'admin';
+  const isAuthor = user?.role === 'author';
   const isLoggedIn = !!user;
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, isAdmin, isLoggedIn }}>
+    <AuthContext.Provider value={{ user, login, loginAuthor, logout, isAdmin, isAuthor, isLoggedIn }}>
       {children}
     </AuthContext.Provider>
   );

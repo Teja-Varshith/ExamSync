@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronDown, Plus, BookOpen, Code, Tag, LogOut, PencilLine } from 'lucide-react';
+import { ChevronDown, Plus, BookOpen, Code, Tag, LogOut, PencilLine, Users } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
   const [selectedSem, setSelectedSem] = useState(1);
   const [subjects, setSubjects] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -16,8 +16,8 @@ export default function AdminDashboard() {
   const [courseCode, setCourseCode] = useState('');
   const [courseType, setCourseType] = useState('Professional Core');
 
-  // Simulated admin profile (would come from backend)
-  const adminProfile = { name: 'Lalitha Suvvada', role: 'HOD - CSE' };
+  // Admin profile from auth context
+  const adminProfile = { name: user?.name || 'Administrator', role: user?.adminRole || 'Admin' };
 
   useEffect(() => {
     document.body.classList.add('admin-mode');
@@ -65,9 +65,9 @@ export default function AdminDashboard() {
         courseCode: subject.courseCode || subject.code,
         courseType: subject.courseType || subject.category,
         noOfUnits: subject.noOfUnits || subject.units || 1,
-        syllabus: subject.syllabus || {},
-        notes: subject.notes || {},
-        pyqs: subject.pyqs || {},
+        customTags: subject.customTags || [],
+        price: subject.price || 0,
+        Payment: subject.Payment || false,
       }
     });
   };
@@ -78,16 +78,25 @@ export default function AdminDashboard() {
         {/* Admin Header */}
         <div className="admin-header">
           <div className="admin-header-info">
-            <span className="admin-header-eyebrow">Admin Portal</span>
+            <span className="admin-header-eyebrow">Admin Portal — {user?.collegeName || ''}</span>
             <h2 className="admin-header-name">{adminProfile.name}</h2>
             <span className="admin-header-role">{adminProfile.role}</span>
           </div>
-          <button
-            onClick={logout}
-            className="admin-logout-btn"
-          >
-            <LogOut size={16} /> Logout
-          </button>
+          <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+            <button
+              onClick={() => navigate('/admin/examites')}
+              className="admin-logout-btn"
+              style={{ background: 'rgba(255, 215, 0, 0.12)', borderColor: 'rgba(255, 215, 0, 0.3)', color: '#FFD700' }}
+            >
+              <Users size={16} /> Examites
+            </button>
+            <button
+              onClick={logout}
+              className="admin-logout-btn"
+            >
+              <LogOut size={16} /> Logout
+            </button>
+          </div>
         </div>
 
         <div className="admin-grid">

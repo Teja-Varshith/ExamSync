@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { Eye, EyeOff, LogIn, BookOpen } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import './LoginPage.css';
 
 export default function LoginPage() {
   const { login } = useAuth();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [collegeCode, setCollegeCode] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -16,10 +18,7 @@ export default function LoginPage() {
     setError('');
     setLoading(true);
 
-    // Brief delay for UX feel
-    await new Promise((r) => setTimeout(r, 400));
-
-    const result = login(username, password);
+    const result = await login(username, password, collegeCode);
     if (!result.success) {
       setError(result.error);
     }
@@ -77,6 +76,21 @@ export default function LoginPage() {
             </div>
           </div>
 
+          <div className="login-field">
+            <label className="login-label" htmlFor="collegeCode">
+              College Code <span style={{ fontWeight: 400, color: 'var(--color-text-muted)' }}>(Admin only)</span>
+            </label>
+            <input
+              id="collegeCode"
+              type="text"
+              className="login-input"
+              placeholder="e.g. gmrit (leave empty for student)"
+              value={collegeCode}
+              onChange={(e) => setCollegeCode(e.target.value)}
+              autoComplete="off"
+            />
+          </div>
+
           {error && (
             <div className="login-error">{error}</div>
           )}
@@ -97,9 +111,14 @@ export default function LoginPage() {
           </button>
         </form>
 
-        {/* Hint */}
+        {/* Hints */}
         <p className="login-hint">
-          Enter any username to access as student
+          Enter any username to access as student · Fill college code for admin
+        </p>
+        <p className="login-hint" style={{ marginTop: '8px' }}>
+          <Link to="/author" style={{ color: 'var(--color-primary)', textDecoration: 'none', fontWeight: 600 }}>
+            Login as Author →
+          </Link>
         </p>
       </div>
     </div>
