@@ -10,7 +10,8 @@ import NeoButton from '../../components/ui/NeoButton';
 import { useConfirm } from '../../components/ui/useConfirm';
 import toast from '../../components/ui/toast';
 import { toneFor } from '../../theme/neopop';
-import api from '../../services/api';
+import api, { getCollegeId } from '../../services/api';
+import { useAuth } from '../../context/AuthContext';
 import { db } from '../../firebase';
 import { doc, getDoc, updateDoc, setDoc } from 'firebase/firestore';
 import './SubjectDetailPage.css';
@@ -100,6 +101,7 @@ export default function SubjectDetailPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const confirm = useConfirm();
+  const { isAdmin, isAuthor } = useAuth();
   const homeId = new URLSearchParams(location.search).get('uid') || localStorage.getItem('examsync_user_id') || '';
   const backToHome = `/?uid=${encodeURIComponent(homeId)}`;
 
@@ -142,6 +144,10 @@ export default function SubjectDetailPage() {
         const res = await api.getSubjectById(normalizedSubjectId);
         if (res.data) {
           setSubject(res.data);
+          // Unlock if free, or user is admin/author
+          if (!res.data.Payment || Number(res.data.price) === 0 || isAdmin || isAuthor) {
+            setIsUnlocked(true);
+          }
           setSubjectAssets({
             notes: mapToRows(res.data.notes, 'notes'),
             pyqs: mapToRows(res.data.pyqs, 'pyqs'),
@@ -176,21 +182,30 @@ export default function SubjectDetailPage() {
 
     if (normalizedSubjectId) fetchSubjectDetails();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [navigate, normalizedSubjectId, unitId]);
+  }, [navigate, normalizedSubjectId, unitId, isAdmin, isAuthor]);
 
   // Check if user has already paid for this subject
   useEffect(() => {
     const checkAccess = async () => {
       setCheckingAccess(true);
       try {
+        if (isAdmin || isAuthor) {
+          setIsUnlocked(true);
+          setCheckingAccess(false);
+          return;
+        }
+
         if (!storedUserId || !normalizedSubjectId) {
           setCheckingAccess(false);
           return;
         }
 
+        const cid = getCollegeId();
         // Check paid_users sub-collection
-        const paidRef = doc(db, 'examsync', 'admins', 'subjects', normalizedSubjectId, 'paid_users', storedUserId);
-        const paidSnap = await getDoc(paidRef);
+        let paidSnap = await getDoc(doc(db, 'examsync', cid, 'subjects', normalizedSubjectId, 'paid_users', storedUserId));
+        if (!paidSnap.exists() && cid !== 'admins') {
+          paidSnap = await getDoc(doc(db, 'examsync', 'admins', 'subjects', normalizedSubjectId, 'paid_users', storedUserId));
+        }
         if (paidSnap.exists()) {
           setIsUnlocked(true);
         }
@@ -210,7 +225,7 @@ export default function SubjectDetailPage() {
       }
     };
     checkAccess();
-  }, [storedUserId, normalizedSubjectId]);
+  }, [storedUserId, normalizedSubjectId, isAdmin, isAuthor]);
 
   const goBack = () => {
     if (window.history.state && window.history.state.idx > 0) {

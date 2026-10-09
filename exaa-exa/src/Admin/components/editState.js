@@ -5,6 +5,7 @@ export const editState = (subject) => ({
   subjectName: subject.subjectName || subject.name,
   courseCode: subject.courseCode || subject.code,
   courseType: subject.courseType || subject.category,
+  branches: subject.branches,
   noOfUnits: subject.noOfUnits || subject.units || 1,
   customTags: subject.customTags || [],
   price: subject.price || 0,

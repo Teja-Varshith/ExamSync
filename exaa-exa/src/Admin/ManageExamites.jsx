@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Trash2, User, KeyRound, BookOpen, X, Eye, EyeOff, AlertCircle, Search } from 'lucide-react';
+import { Plus, Trash2, User, KeyRound, Eye, EyeOff, AlertCircle, Search, PencilLine } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import AdminLayout from '../components/layout/AdminLayout';
@@ -8,8 +8,10 @@ import EmptyState from '../components/ui/EmptyState';
 import { useConfirm } from '../components/ui/useConfirm';
 import toast from '../components/ui/toast';
 import { CardSkeleton } from '../components/Loader/Loader';
+import EditExamiteDialog from './components/EditExamiteDialog';
+import SubjectCodesInput from './components/SubjectCodesInput';
 
-function ExamiteRow({ ex, index, subjectName, onRemove }) {
+function ExamiteRow({ ex, index, subjectName, onEdit, onRemove }) {
   const [reveal, setReveal] = useState(false);
   return (
     <article className="ad-examite" style={{ animationDelay: `${Math.min(index, 10) * 40}ms` }}>
@@ -34,9 +36,14 @@ function ExamiteRow({ ex, index, subjectName, onRemove }) {
           )}
         </div>
       </div>
-      <button type="button" className="neo-icon-btn neo-icon-btn--danger" onClick={() => onRemove(ex.username)} aria-label={`Remove ${ex.username}`} title="Remove examite">
-        <Trash2 size={16} />
-      </button>
+      <div className="ad-examite__actions">
+        <button type="button" className="neo-icon-btn" onClick={() => onEdit(ex)} aria-label={`Edit ${ex.username}`} title="Edit examite">
+          <PencilLine size={16} />
+        </button>
+        <button type="button" className="neo-icon-btn neo-icon-btn--danger" onClick={() => onRemove(ex.username)} aria-label={`Remove ${ex.username}`} title="Remove examite">
+          <Trash2 size={16} />
+        </button>
+      </div>
     </article>
   );
 }
@@ -59,8 +66,8 @@ export default function ManageExamites() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [selectedSubjects, setSelectedSubjects] = useState([]);
-  const [subjectInput, setSubjectInput] = useState('');
   const [formError, setFormError] = useState('');
+  const [editing, setEditing] = useState(null);
 
   // Fetch examites
   useEffect(() => {
@@ -94,22 +101,6 @@ export default function ManageExamites() {
     };
     fetchAllSubjects();
   }, []);
-
-  const handleAddSubjectCode = () => {
-    const code = subjectInput.trim().toLowerCase();
-    if (!code) return;
-    if (selectedSubjects.includes(code)) {
-      setFormError('That subject is already in the list.');
-      return;
-    }
-    setSelectedSubjects(prev => [...prev, code]);
-    setSubjectInput('');
-    setFormError('');
-  };
-
-  const handleRemoveSubjectCode = (code) => {
-    setSelectedSubjects(prev => prev.filter(s => s !== code));
-  };
 
   const handleAdd = async (e) => {
     e.preventDefault();
@@ -197,7 +188,7 @@ export default function ManageExamites() {
               />
             ) : (
               visible.map((ex, index) => (
-                <ExamiteRow key={ex.username || index} ex={ex} index={index} subjectName={getSubjectName} onRemove={handleRemove} />
+                <ExamiteRow key={ex.username || index} ex={ex} index={index} subjectName={getSubjectName} onEdit={setEditing} onRemove={handleRemove} />
               ))
             )}
           </div>
@@ -245,44 +236,13 @@ export default function ManageExamites() {
 
             {/* Subject Assignment */}
             <div className="neo-field">
-              <label className="neo-label" htmlFor="ex-subject">Assign subjects <small>(optional)</small></label>
-              <div className="ad-inline">
-                <div className="neo-input-wrap">
-                  <BookOpen size={16} />
-                  <input
-                    id="ex-subject"
-                    className="neo-input"
-                    placeholder="Type a course code"
-                    value={subjectInput}
-                    onChange={(e) => setSubjectInput(e.target.value)}
-                    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddSubjectCode(); } }}
-                    list="subject-suggestions"
-                  />
-                </div>
-                <NeoButton variant="secondary" kind="flat" icon={Plus} onClick={handleAddSubjectCode} disabled={!subjectInput.trim()}>
-                  Add
-                </NeoButton>
-              </div>
-              {/* Datalist for suggestions */}
-              <datalist id="subject-suggestions">
-                {allSubjects.map(s => (
-                  <option key={s.courseCode || s.code} value={(s.courseCode || s.code || '').toLowerCase()}>
-                    {s.name}
-                  </option>
-                ))}
-              </datalist>
-              {selectedSubjects.length > 0 && (
-                <div className="ad-chips">
-                  {selectedSubjects.map(code => (
-                    <span key={code} className="neo-chip neo-chip--accent">
-                      {getSubjectName(code)}
-                      <button type="button" onClick={() => handleRemoveSubjectCode(code)} aria-label={`Remove ${code}`}>
-                        <X size={12} />
-                      </button>
-                    </span>
-                  ))}
-                </div>
-              )}
+              <span className="neo-label">Assign subjects <small>(optional)</small></span>
+              <SubjectCodesInput
+                value={selectedSubjects}
+                onChange={setSelectedSubjects}
+                allSubjects={allSubjects}
+                onError={setFormError}
+              />
             </div>
 
             {formError && (
@@ -298,6 +258,16 @@ export default function ManageExamites() {
           </form>
         </aside>
       </div>
+
+      {editing && (
+        <EditExamiteDialog
+          examite={editing}
+          collegeId={collegeId}
+          allSubjects={allSubjects}
+          onClose={() => setEditing(null)}
+          onSaved={setExamites}
+        />
+      )}
     </AdminLayout>
   );
 }

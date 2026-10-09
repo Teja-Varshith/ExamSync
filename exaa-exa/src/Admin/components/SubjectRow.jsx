@@ -1,10 +1,15 @@
-import { PencilLine, FileStack } from 'lucide-react';
+import { PencilLine, FileStack, BookOpenText } from 'lucide-react';
 import AbstractArt from '../../components/brand/AbstractArt';
 import NeoButton from '../../components/ui/NeoButton';
+import { normalizeBranches } from '../../constants/branches';
 
-/** One subject in the Admin / Author dashboards. */
-export default function SubjectRow({ subject, index = 0, showSemester = false, onEdit, onSheets }) {
+/**
+ * One subject in the Admin / Author dashboards.
+ * onDetails (admin only) → edit metadata · onContent → syllabus/notes/PYQs · onSheets → cheat sheets
+ */
+export default function SubjectRow({ subject, index = 0, showSemester = false, onDetails, onContent, onSheets }) {
   const code = subject.courseCode || subject.code || '';
+  const branches = normalizeBranches(subject.branches);
   return (
     <article className="ad-subject" style={{ animationDelay: `${Math.min(index, 10) * 40}ms` }}>
       <div className="ad-subject__art">
@@ -18,10 +23,18 @@ export default function SubjectRow({ subject, index = 0, showSemester = false, o
           {showSemester && subject.semester && <span>Sem {subject.semester}</span>}
           <span>{subject.units} unit{subject.units !== 1 ? 's' : ''}</span>
         </div>
+        <div className="ad-subject__branches" aria-label="Branches">
+          {branches.map((b) => <span key={b} className="ad-branch">{b}</span>)}
+        </div>
       </div>
       <div className="ad-subject__actions">
-        <NeoButton size="small" variant="secondary" kind="flat" icon={PencilLine} onClick={() => onEdit(subject)} aria-label={`Edit ${subject.name}`}>
-          Edit
+        {onDetails && (
+          <NeoButton size="small" variant="secondary" kind="flat" icon={PencilLine} onClick={() => onDetails(subject)} aria-label={`Edit details of ${subject.name}`}>
+            Edit
+          </NeoButton>
+        )}
+        <NeoButton size="small" variant="secondary" kind="flat" icon={BookOpenText} onClick={() => onContent(subject)} aria-label={`Edit syllabus, notes and PYQs of ${subject.name}`}>
+          Content
         </NeoButton>
         <NeoButton size="small" icon={FileStack} onClick={() => onSheets(subject)} aria-label={`Cheat sheets for ${subject.name}`}>
           Cheat sheets

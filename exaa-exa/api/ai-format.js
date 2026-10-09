@@ -12,7 +12,7 @@
  */
 
 const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
-const DEFAULT_MODEL = 'llama-3.3-70b-versatile';
+const DEFAULT_MODEL = 'openai/gpt-oss-120b';
 const MAX_ANSWER_CHARS = 20000;
 const MAX_QUESTION_CHARS = 2000;
 
@@ -84,6 +84,27 @@ export async function formatAnswer({ question = '', answer = '' } = {}, env = pr
 }
 
 export default async function handler(req, res) {
+  // Netlify Functions (Standard Web Request/Response)
+  if (!res || typeof res.status !== 'function') {
+    if (req.method !== 'POST') {
+      return new Response(JSON.stringify({ error: 'Use POST' }), {
+        status: 405,
+        headers: { 'Content-Type': 'application/json', 'Allow': 'POST' },
+      });
+    }
+    try {
+      const body = await req.json().catch(() => ({}));
+      const html = await formatAnswer(body);
+      return Response.json({ html });
+    } catch (err) {
+      return Response.json(
+        { error: err.message || 'AI formatting failed' },
+        { status: err.status || 500 }
+      );
+    }
+  }
+
+  // Node.js / Vercel / Vite dev middleware
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
     return res.status(405).json({ error: 'Use POST' });

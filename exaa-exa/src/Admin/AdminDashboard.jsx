@@ -9,6 +9,9 @@ import { editState } from './components/editState';
 import NeoButton from '../components/ui/NeoButton';
 import Segmented from '../components/ui/Segmented';
 import EmptyState from '../components/ui/EmptyState';
+import BranchPicker from '../components/ui/BranchPicker';
+import EditSubjectDialog from './components/EditSubjectDialog';
+import { BRANCHES, normalizeBranches } from '../constants/branches';
 import { CardSkeleton } from '../components/Loader/Loader';
 
 const COURSE_TYPES = [
@@ -28,7 +31,12 @@ export default function AdminDashboard() {
   const [subjectName, setSubjectName] = useState('');
   const [courseCode, setCourseCode] = useState('');
   const [courseType, setCourseType] = useState('Professional Core');
+  const [branches, setBranches] = useState([]);
   const [formError, setFormError] = useState('');
+
+  // List filters + edit dialog
+  const [branchFilter, setBranchFilter] = useState('all');
+  const [editing, setEditing] = useState(null);
 
   useEffect(() => {
     sessionStorage.setItem('admin_sem', String(selectedSem));
@@ -60,6 +68,10 @@ export default function AdminDashboard() {
       setFormError('Add both a subject name and a course code.');
       return;
     }
+    if (branches.length === 0) {
+      setFormError('Pick at least one branch this subject is taught in.');
+      return;
+    }
     if (duplicate) {
       setFormError(`${duplicate.courseCode} already exists in Semester ${selectedSem}. Edit it from the list instead.`);
       return;
@@ -71,8 +83,18 @@ export default function AdminDashboard() {
         subjectName: subjectName.trim(),
         courseCode: courseCode.trim(),
         courseType,
+        branches,
       }
     });
+  };
+
+  // After editing details: update in place, or drop it from this list if it moved semester
+  const handleSubjectSaved = (updated) => {
+    setSubjects((prev) =>
+      Number(updated.semester) !== Number(selectedSem)
+        ? prev.filter((s) => s.id !== updated.id)
+        : prev.map((s) => (s.id === updated.id ? { ...s, ...updated } : s))
+    );
   };
 
   const openSheets = (sub) =>
@@ -85,9 +107,9 @@ export default function AdminDashboard() {
     });
 
   const q = search.trim().toLowerCase();
-  const visible = q
-    ? subjects.filter((s) => `${s.name} ${s.courseCode}`.toLowerCase().includes(q))
-    : subjects;
+  const visible = subjects
+    .filter((s) => !q || `${s.name} ${s.courseCode}`.toLowerCase().includes(q))
+    .filter((s) => branchFilter === 'all' || normalizeBranches(s.branches).includes(branchFilter));
   const coreCount = subjects.filter((s) => s.courseType === 'Professional Core').length;
 
   return (
@@ -138,14 +160,30 @@ export default function AdminDashboard() {
             options={[1, 2, 3, 4, 5, 6, 7, 8].map((s) => ({ value: s, label: `Sem ${s}` }))}
           />
 
+          <Segmented
+            size="small"
+            className="ad-branch-filter"
+            ariaLabel="Filter by branch"
+            value={branchFilter}
+            onChange={setBranchFilter}
+            options={[
+              { value: 'all', label: 'All branches' },
+              ...BRANCHES.map((b) => ({
+                value: b,
+                label: b,
+                badge: loading ? null : subjects.filter((s) => normalizeBranches(s.branches).includes(b)).length,
+              })),
+            ]}
+          />
+
           <div className="ad-list">
             {loading ? (
               <CardSkeleton count={2} />
             ) : visible.length === 0 ? (
               <EmptyState
                 compact
-                title={q ? 'No matches' : `No subjects in Semester ${selectedSem}`}
-                message={q ? 'Try a different name or course code.' : 'Use “Add a subject” to create the first one.'}
+                title={q || branchFilter !== 'all' ? 'No matches' : `No subjects in Semester ${selectedSem}`}
+                message={q || branchFilter !== 'all' ? 'Try a different search or branch.' : 'Use “Add a subject” to create the first one.'}
               />
             ) : (
               visible.map((sub, i) => (
@@ -153,7 +191,8 @@ export default function AdminDashboard() {
                   key={sub.id}
                   subject={sub}
                   index={i}
-                  onEdit={(s) => navigate('/admin/add-syllabus', { state: editState(s) })}
+                  onDetails={setEditing}
+                  onContent={(s) => navigate('/admin/add-syllabus', { state: editState(s) })}
                   onSheets={openSheets}
                 />
               ))
@@ -200,6 +239,15 @@ export default function AdminDashboard() {
               <Segmented ariaLabel="Course type" value={courseType} onChange={setCourseType} options={COURSE_TYPES} />
             </div>
 
+            <div className="neo-field">
+              <span className="neo-label">Branches <small>— pick every branch that has this subject</small></span>
+              <BranchPicker
+                value={branches}
+                onChange={(b) => { setBranches(b); setFormError(''); }}
+                invalid={Boolean(formError) && branches.length === 0}
+              />
+            </div>
+
             {formError && (
               <div className="neo-alert neo-alert--error" role="alert">
                 <AlertCircle size={16} />
@@ -213,6 +261,14 @@ export default function AdminDashboard() {
           </form>
         </aside>
       </div>
+
+      {editing && (
+        <EditSubjectDialog
+          subject={editing}
+          onClose={() => setEditing(null)}
+          onSaved={handleSubjectSaved}
+        />
+      )}
     </AdminLayout>
   );
 }

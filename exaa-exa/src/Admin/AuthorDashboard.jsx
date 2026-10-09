@@ -101,7 +101,7 @@ export default function AuthorDashboard() {
                 subject={sub}
                 index={i}
                 showSemester
-                onEdit={(s) => navigate('/admin/add-syllabus', { state: editState(s) })}
+                onContent={(s) => navigate('/admin/add-syllabus', { state: editState(s) })}
                 onSheets={(s) => navigate('/admin/cheatsheets', {
                   state: {
                     subjectName: s.name || s.subjectName,

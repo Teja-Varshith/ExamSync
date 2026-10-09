@@ -71,6 +71,10 @@ examsync/                                   (collection)
             ├── courseCode:  string         "23CS015"
             ├── courseType:  string         "Professional Core" | "Professional Elective"
             ├── semester:    number         1–8
+            ├── branches:    string[]       any of "CSE" | "CS-AIML" | "CS-AIDS" | "IT"; a subject can belong
+            │                               to several branches. Missing field = ["CSE"] (older subjects).
+            │                               Not used by the student app yet — keep the CSE-only picker (§5.1)
+            │                               until the owner asks for branch filtering.
             ├── noOfUnits:   number
             ├── customTags:  string[]       extra Pakka Pass tag names (see ImpQuestions)
             ├── price:       number         coins to unlock Pakka Pass (app default 50 if missing)

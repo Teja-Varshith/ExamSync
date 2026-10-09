@@ -9,6 +9,7 @@ import EmptyState from '../components/ui/EmptyState';
 import Loader from '../components/Loader/Loader';
 import { useConfirm } from '../components/ui/useConfirm';
 import toast from '../components/ui/toast';
+import { normalizeBranches } from '../constants/branches';
 
 export default function AddSyllabus() {
   const navigate = useNavigate();
@@ -276,7 +277,7 @@ export default function AddSyllabus() {
         { label: 'Dashboard', to: '/admin' },
         { label: isEditMode ? 'Edit subject' : 'New subject' },
       ]}
-      eyebrow={`Semester ${subjectData.semester} · ${subjectData.courseType || ''}`}
+      eyebrow={`Semester ${subjectData.semester} · ${subjectData.courseType || ''} · ${normalizeBranches(subjectData.branches).join(', ')}`}
       title={subjectData.subjectName || 'New Subject'}
       subtitle={<span className="ad-code">{subjectData.courseCode}</span>}
     >

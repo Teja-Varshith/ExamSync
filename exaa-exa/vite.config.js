@@ -4,10 +4,11 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import path from 'path'
 import { formatAnswer } from './api/ai-format.js'
+import { getImageKitAuth } from './api/imagekit-auth.js'
 
 /**
- * Serves /api/ai-format during `npm run dev` (on Vercel the file in /api runs instead),
- * using GROQ_API_KEY from .env.local — the key never reaches the browser.
+ * Serves /api/ai-format and /api/imagekit-auth during `npm run dev`
+ * (on Vercel the files in /api run instead), keeping all secret keys server-side.
  */
 function devApi(env) {
   return {
@@ -29,6 +30,21 @@ function devApi(env) {
           send(err.status || 500, { error: err.message || 'AI formatting failed' })
         }
       })
+
+      server.middlewares.use('/api/imagekit-auth', async (req, res) => {
+        const send = (status, data) => {
+          res.statusCode = status
+          res.setHeader('Content-Type', 'application/json')
+          res.end(JSON.stringify(data))
+        }
+        if (req.method !== 'GET') return send(405, { error: 'Use GET' })
+        try {
+          const auth = getImageKitAuth(env)
+          send(200, auth)
+        } catch (err) {
+          send(err.status || 500, { error: err.message || 'ImageKit auth failed' })
+        }
+      })
     },
   }
 }
@@ -45,7 +61,7 @@ export default defineConfig(({ mode }) => {
     ],
     resolve: {
       alias: {
-        '@': path.resolve(__dirname, './src/Quiz'),
+        '@': path.resolve(__dirname, './src'),
       },
     },
   }

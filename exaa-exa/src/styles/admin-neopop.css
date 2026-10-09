@@ -1215,3 +1215,43 @@ body.admin-mode .admin-editor-shell {
   text-decoration: underline;
   text-underline-offset: 3px;
 }
+
+/* ─── Branches ─── */
+.ad-subject__branches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.ad-branch {
+  padding: 2px 6px;
+  font-size: 0.625rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--text-secondary);
+  background: var(--surface-elevated);
+  border: 1px solid var(--border-light);
+}
+
+.ad-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.ad-branch-filter {
+  margin-top: -4px;
+}
+
+@media (max-width: 560px) {
+  .ad-form-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.ad-examite__actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}

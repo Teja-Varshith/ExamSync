@@ -9,6 +9,7 @@
  *           └── subjects (subcollection)
  *                 └── {courseCode} (document — METADATA only)
  *                       ├── subjectName, courseCode, courseType, semester
+ *                       ├── branches: string[]  (e.g. ["CSE","IT"]; missing = ["CSE"])
  *                       ├── noOfUnits, customTags, price, Payment
  *                       │
  *                       ├── exam_data/ (subcollection)
@@ -22,6 +23,7 @@
  */
 
 import { db } from '../firebase';
+import { normalizeBranches } from '../constants/branches';
 import {
   collection,
   doc,
@@ -42,9 +44,12 @@ import {
 export const getCollegeId = () => {
   try {
     const user = JSON.parse(localStorage.getItem('examsync_user') || '{}');
-    return user.collegeId || 'admins';
+    if (user?.collegeId) return user.collegeId.trim().toLowerCase();
+    const stored = localStorage.getItem('examsync_college_id');
+    if (stored) return stored.trim().toLowerCase();
+    return 'gmrit';
   } catch {
-    return 'admins';
+    return 'gmrit';
   }
 };
 
@@ -96,6 +101,7 @@ const api = {
         category: docSnap.data().courseType,
         icon: '📚',
         units: docSnap.data().noOfUnits || 0,
+        branches: normalizeBranches(docSnap.data().branches),
         progress: 0,
       }));
       // Sort client-side (newest first)
@@ -125,6 +131,7 @@ const api = {
         category: docSnap.data().courseType,
         icon: '📚',
         units: docSnap.data().noOfUnits || 0,
+        branches: normalizeBranches(docSnap.data().branches),
         progress: 0,
       }));
       return { data: subjects };
@@ -174,6 +181,7 @@ const api = {
           category: metaData.courseType,
           icon: '📚',
           units: metaData.noOfUnits || 0,
+          branches: normalizeBranches(metaData.branches),
           progress: 0,
         }
       };
@@ -204,6 +212,7 @@ const api = {
         customTags: subjectData.customTags || [],
         price: Number(subjectData.price) || 0,
         Payment: subjectData.Payment || false,
+        branches: normalizeBranches(subjectData.branches),
         createdAt: serverTimestamp(),
       };
 
@@ -244,6 +253,7 @@ const api = {
         customTags: subjectData.customTags || [],
         price: Number(subjectData.price) || 0,
         Payment: subjectData.Payment || false,
+        branches: normalizeBranches(subjectData.branches),
       };
 
       await updateDoc(docRef, metaDoc);
@@ -463,6 +473,48 @@ const api = {
       return { success: true, data: examites };
     } catch (err) {
       console.error('Error updating examite subjects:', err);
+      throw err;
+    }
+  },
+
+  /**
+   * Edit an examite (username, password, assigned subjects).
+   * `originalUsername` identifies the entry; the new username must stay unique.
+   */
+  updateExamite: async (collegeId, originalUsername, updates) => {
+    try {
+      const cid = collegeId || getCollegeId();
+      const collegeRef = doc(db, 'examsync', cid);
+      const collegeSnap = await getDoc(collegeRef);
+
+      if (!collegeSnap.exists()) throw new Error('College not found');
+
+      const original = originalUsername.toLowerCase();
+      const nextUsername = (updates.username || originalUsername).trim().toLowerCase();
+      const current = collegeSnap.data().examites || [];
+
+      if (!current.some(e => e.username.toLowerCase() === original)) {
+        throw new Error('This examite no longer exists. Refresh the page.');
+      }
+      if (nextUsername !== original && current.some(e => e.username.toLowerCase() === nextUsername)) {
+        throw new Error(`The username "${nextUsername}" is already taken`);
+      }
+
+      const examites = current.map(e => {
+        if (e.username.toLowerCase() !== original) return e;
+        return {
+          ...e,
+          username: nextUsername,
+          password: updates.password ?? e.password,
+          subjects: updates.subjects ?? e.subjects ?? [],
+          updatedAt: new Date().toISOString(),
+        };
+      });
+
+      await updateDoc(collegeRef, { examites });
+      return { success: true, data: examites };
+    } catch (err) {
+      console.error('Error updating examite:', err);
       throw err;
     }
   },

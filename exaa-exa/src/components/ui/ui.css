@@ -255,3 +255,111 @@
   from { opacity: 0; transform: translateY(-12px) scale(0.97); }
   to   { opacity: 1; transform: none; }
 }
+
+/* ─── Branch picker ─── */
+.neo-branches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.neo-branch {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-light);
+  transition: background var(--transition-fast), color var(--transition-fast), transform 0.12s;
+}
+
+.neo-branch:hover {
+  color: var(--text-primary);
+  border-color: var(--text-muted);
+}
+
+.neo-branch:active {
+  transform: translate(2px, 2px);
+}
+
+.neo-branch__box {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border: 1.5px solid currentColor;
+}
+
+.neo-branch.is-on {
+  color: var(--bg-primary);
+  background: var(--accent);
+  border-color: var(--accent);
+  box-shadow: 3px 3px 0 var(--accent-edge-b);
+}
+
+.neo-branch.is-on .neo-branch__box {
+  color: var(--bg-primary);
+  background: var(--bg-primary);
+}
+
+.neo-branch.is-on .neo-branch__box svg {
+  color: var(--accent);
+}
+
+.neo-branch--all {
+  color: var(--text-muted);
+  background: transparent;
+  border-style: dashed;
+}
+
+.neo-branches.is-invalid .neo-branch:not(.neo-branch--all) {
+  border-color: var(--color-error);
+}
+
+/* ─── Modal ─── */
+.neo-modal {
+  max-height: calc(100vh - 40px);
+}
+
+.neo-modal__frame {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 48px);
+  border: 1px solid var(--border-light);
+}
+
+.neo-modal__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 20px 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.neo-modal__sub {
+  margin-top: 4px;
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+}
+
+.neo-modal__body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.neo-modal__foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 14px 20px;
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border);
+}

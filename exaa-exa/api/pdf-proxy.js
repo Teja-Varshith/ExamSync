@@ -7,7 +7,41 @@
  * Usage: /api/pdf-proxy?url=<encoded-pdf-url>
  */
 export default async function handler(req, res) {
-  const { url } = req.query;
+  // Netlify Functions (Standard Web Request/Response)
+  if (!res || typeof res.status !== 'function') {
+    const requestUrl = new URL(req.url);
+    const targetUrl = requestUrl.searchParams.get('url');
+
+    if (!targetUrl) {
+      return Response.json({ error: 'Missing "url" query parameter' }, { status: 400 });
+    }
+
+    try {
+      const pdfResponse = await fetch(targetUrl, {
+        headers: { 'User-Agent': 'Mozilla/5.0 (compatible; ExamSync/1.0)' },
+      });
+
+      if (!pdfResponse.ok) {
+        return Response.json({ error: `Upstream returned ${pdfResponse.status}` }, { status: pdfResponse.status });
+      }
+
+      const buffer = await pdfResponse.arrayBuffer();
+      return new Response(buffer, {
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Content-Type': 'application/pdf',
+          'Cache-Control': 'public, max-age=86400, s-maxage=86400',
+          'Content-Length': String(buffer.byteLength),
+        },
+      });
+    } catch (err) {
+      console.error('PDF proxy error:', err);
+      return Response.json({ error: 'Failed to fetch PDF' }, { status: 500 });
+    }
+  }
+
+  // Node.js / Vercel
+  const { url } = req.query || {};
 
   if (!url) {
     return res.status(400).json({ error: 'Missing "url" query parameter' });

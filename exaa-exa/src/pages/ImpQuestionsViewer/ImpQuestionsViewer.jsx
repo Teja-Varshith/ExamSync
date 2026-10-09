@@ -3,6 +3,7 @@ import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { ArrowLeft, ChevronRight, ChevronsUpDown, Sparkles } from 'lucide-react';
 import { db } from '../../firebase';
 import { doc, getDoc } from 'firebase/firestore';
+import { getCollegeId } from '../../services/api';
 import Loader from '../../components/Loader/Loader';
 import Segmented from '../../components/ui/Segmented';
 import EmptyState from '../../components/ui/EmptyState';
@@ -48,9 +49,14 @@ export default function ImpQuestionsViewer() {
     const fetchQuestions = async () => {
       setLoading(true);
       try {
+        const cid = getCollegeId();
+
         // 1. Read custom tags from subject metadata
-        const docRef = doc(db, 'examsync', 'admins', 'subjects', normalizedSubjectId);
-        const docSnap = await getDoc(docRef);
+        let docRef = doc(db, 'examsync', cid, 'subjects', normalizedSubjectId);
+        let docSnap = await getDoc(docRef);
+        if (!docSnap.exists() && cid !== 'admins') {
+          docSnap = await getDoc(doc(db, 'examsync', 'admins', 'subjects', normalizedSubjectId));
+        }
         if (docSnap.exists()) {
           const data = docSnap.data();
           if (Array.isArray(data.customTags)) {
@@ -59,11 +65,23 @@ export default function ImpQuestionsViewer() {
         }
 
         // 2. Read ImpQuestions from exam_data/ImpQuestions document
-        const examRef = doc(db, 'examsync', 'admins', 'subjects', normalizedSubjectId, 'exam_data', 'ImpQuestions');
-        const examSnap = await getDoc(examRef);
+        let examRef = doc(db, 'examsync', cid, 'subjects', normalizedSubjectId, 'exam_data', 'ImpQuestions');
+        let examSnap = await getDoc(examRef);
+        if (!examSnap.exists() && cid !== 'admins') {
+          examSnap = await getDoc(doc(db, 'examsync', 'admins', 'subjects', normalizedSubjectId, 'exam_data', 'ImpQuestions'));
+        }
         if (examSnap.exists()) {
           const examData = examSnap.data();
-          setImpQuestions(examData.data || examData || {}); // Fallback for old structure if any
+          const qs = examData.data || examData || {};
+          setImpQuestions(qs);
+
+          // If activeExam has no questions, but another exam does, auto-switch to it
+          const examsWithQuestions = ['Mid 1', 'Mid 2', 'Sem'].filter(
+            (e) => qs[e] && Object.keys(qs[e]).length > 0
+          );
+          if (examsWithQuestions.length > 0 && (!qs[activeExam] || Object.keys(qs[activeExam]).length === 0)) {
+            setActiveExam(examsWithQuestions[0]);
+          }
         }
       } catch (err) {
         console.error('Failed to fetch ImpQuestions:', err);

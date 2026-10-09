@@ -10,9 +10,9 @@ import ResizableImage from '../components/editor/ResizableImage';
 import Placeholder from '@tiptap/extension-placeholder';
 import Underline from '@tiptap/extension-underline';
 import { db } from '../firebase';
-import { doc, getDoc, updateDoc, setDoc, deleteField } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, setDoc, deleteField, FieldPath } from 'firebase/firestore';
 import { getCollegeId } from '../services/api';
-import { uploadImageToSupabase, processHtmlImages } from '../supabase';
+import { uploadImageToImageKit, processHtmlImages } from '../imagekit';
 import AdminLayout from '../components/layout/AdminLayout';
 import NeoButton from '../components/ui/NeoButton';
 import { useConfirm } from '../components/ui/useConfirm';
@@ -42,8 +42,8 @@ function saveStoredQuestions(subjectCode, examType, questions) {
   } catch (e) { console.error('Save failed', e); }
 }
 
-// ─── Supabase Image Upload ───────────────────────────────────────
-function triggerSupabaseImageUpload(editor, setUploading) {
+// ─── ImageKit Image Upload ───────────────────────────────────────
+function triggerImageKitUpload(editor, setUploading) {
   const input = document.createElement('input');
   input.type = 'file';
   input.accept = 'image/*';
@@ -52,8 +52,9 @@ function triggerSupabaseImageUpload(editor, setUploading) {
     if (!file) return;
     setUploading(true);
     try {
-      const publicUrl = await uploadImageToSupabase(file);
+      const publicUrl = await uploadImageToImageKit(file);
       editor.chain().focus().setImage({ src: publicUrl, alt: file.name }).run();
+      toast.success('Image uploaded', 'Image uploaded to ImageKit CDN.');
     } catch (err) {
       console.error('Image upload failed:', err);
       toast.error('Image upload failed', err?.message || 'Please try again.');
@@ -129,7 +130,7 @@ function DarkEditorToolbar({ editor, uploading, setUploading }) {
 
       <Divider />
 
-      <ToolbarBtn onClick={() => triggerSupabaseImageUpload(editor, setUploading)} disabled={uploading} title="Insert Image">
+      <ToolbarBtn onClick={() => triggerImageKitUpload(editor, setUploading)} disabled={uploading} title="Insert Image">
         {uploading ? (
           <svg width="16" height="16" className="admin-spin" fill="none" viewBox="0 0 24 24">
             <circle opacity="0.25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
@@ -242,61 +243,76 @@ export default function AdminCheatsheetEditor() {
   const examKeyMap = { mid1: 'Mid 1', mid2: 'Mid 2', sem: 'Sem' };
 
   useEffect(() => {
+    let cancelled = false; // ignore results from a superseded run (StrictMode / exam switch)
+
     const loadQuestions = async () => {
       setLoadingQuestions(true);
-      try {
-        if (courseCode) {
-          const cid = getCollegeId();
+      // Drafts pushed to the list but never saved to Firebase
+      const localDrafts = getStoredQuestions(courseCode, examType).filter(q => !q.fromFirebase);
 
-          // 1. Read customTags from subject metadata doc
-          const metaRef = doc(db, 'examsync', cid, 'subjects', courseCode);
-          const metaSnap = await getDoc(metaRef);
-          if (metaSnap.exists()) {
-            const metaData = metaSnap.data();
-            if (Array.isArray(metaData?.customTags) && metaData.customTags.length > 0) {
-              const merged = [...new Set([...DEFAULT_TAGS, ...metaData.customTags])];
-              setTagOptions(merged);
-            }
-          }
-
-          // 2. Read ImpQuestions from exam_data/ImpQuestions document
-          const examRef = doc(db, 'examsync', cid, 'subjects', courseCode, 'exam_data', 'ImpQuestions');
-          const examSnap = await getDoc(examRef);
-
-          if (examSnap.exists()) {
-            const examData = examSnap.data();
-            const firebaseKey = examKeyMap[examType] || examType;
-            const impData = examData?.data?.[firebaseKey] || examData?.[firebaseKey];
-
-            if (impData && typeof impData === 'object' && Object.keys(impData).length > 0) {
-              const firebaseQuestions = Object.entries(impData)
-                .sort(([a], [b]) => Number(a) - Number(b))
-                .map(([key, val]) => ({
-                  id: `fb_${key}_${Date.now()}`,
-                  question: val.question || '',
-                  answerHtml: val.answer || '',
-                  questionType: val.tag || 'Pakka Chadavali Amma',
-                  createdAt: new Date().toISOString(),
-                  fromFirebase: true,
-                }));
-
-              setQuestions(firebaseQuestions);
-              saveStoredQuestions(courseCode, examType, firebaseQuestions);
-              setLoadingQuestions(false);
-              return;
-            }
-          }
-        }
-      } catch (err) {
-        console.error('Failed to fetch from Firebase:', err);
+      if (!courseCode) {
+        setQuestions(localDrafts);
+        setLoadingQuestions(false);
+        return;
       }
 
-      // Fallback to localStorage
-      setQuestions(getStoredQuestions(courseCode, examType));
-      setLoadingQuestions(false);
+      try {
+        const cid = getCollegeId();
+
+        // 1. Read customTags from subject metadata doc
+        const metaRef = doc(db, 'examsync', cid, 'subjects', courseCode);
+        const metaSnap = await getDoc(metaRef);
+        if (metaSnap.exists()) {
+          const metaData = metaSnap.data();
+          if (Array.isArray(metaData?.customTags) && metaData.customTags.length > 0) {
+            const merged = [...new Set([...DEFAULT_TAGS, ...metaData.customTags])];
+            setTagOptions(merged);
+          }
+        }
+
+        // 2. Read ImpQuestions from exam_data/ImpQuestions document
+        const examRef = doc(db, 'examsync', cid, 'subjects', courseCode, 'exam_data', 'ImpQuestions');
+        const examSnap = await getDoc(examRef);
+        const examData = examSnap.exists() ? examSnap.data() : {};
+        const firebaseKey = examKeyMap[examType] || examType;
+        const impData = examData?.data?.[firebaseKey] || examData?.[firebaseKey] || {};
+
+        const firebaseQuestions = Object.entries(impData)
+          .sort(([a], [b]) => Number(a) - Number(b))
+          .map(([key, val]) => ({
+            id: `fb_${key}_${Date.now()}`,
+            fbKey: key,
+            question: val.question || '',
+            answerHtml: val.answer || '',
+            questionType: val.tag || 'Pakka Chadavali Amma',
+            createdAt: new Date().toISOString(),
+            fromFirebase: true,
+          }));
+
+        if (cancelled) return;
+        // Firebase wins — stale cached copies of deleted questions are dropped
+        const merged = [...firebaseQuestions, ...localDrafts];
+        setQuestions(merged);
+        saveStoredQuestions(courseCode, examType, merged);
+        if (localDrafts.length) {
+          toast.warning(
+            `${localDrafts.length} unsaved draft${localDrafts.length !== 1 ? 's' : ''} restored`,
+            'They are only on this device until you Save to Firebase.'
+          );
+        }
+      } catch (err) {
+        if (cancelled) return;
+        console.error('Failed to fetch from Firebase:', err);
+        // Offline / permission error — show the last local copy, but say so
+        setQuestions(getStoredQuestions(courseCode, examType));
+        toast.error('Could not load from Firebase', 'Showing the copy saved on this device.');
+      } finally {
+        if (!cancelled) setLoadingQuestions(false);
+      }
     };
 
     loadQuestions();
+    return () => { cancelled = true; };
   }, [courseCode, examType]);
 
   // Add a new custom tag
@@ -495,25 +511,29 @@ export default function AdminCheatsheetEditor() {
         const examMap = { mid1: 'Mid 1', mid2: 'Mid 2', sem: 'Sem' };
         const firebaseExamKey = examMap[examType] || examType;
 
-        // Extract the original Firebase map key (e.g., "1", "2") from something like "fb_1_1712xxxxxx"
-        const originalKey = qToRemove.id.split('_')[1];
+        // Original Firebase map key ("1", "2", …); older items only carry it inside the id "fb_1_1712…"
+        const originalKey = qToRemove.fbKey || qToRemove.id.split('_')[1];
 
         if (originalKey) {
           const examRef = doc(db, 'examsync', getCollegeId(), 'subjects', courseCode, 'exam_data', 'ImpQuestions');
-          await updateDoc(examRef, {
-            [`data.${firebaseExamKey}.${originalKey}`]: deleteField()
-          });
+          // FieldPath keeps "Mid 1" (with its space) as one segment
+          await updateDoc(examRef, new FieldPath('data', firebaseExamKey, originalKey), deleteField());
         }
       } catch (err) {
-        console.error('Failed to delete directly from Firebase:', err);
-        toast.error('Could not delete from Firebase', 'Please try again.');
-        return; // Halt local deletion if server deletion failed
+        // The document was already removed (e.g. deleted in the Firebase console) — nothing left to delete
+        if (err?.code !== 'not-found') {
+          console.error('Failed to delete directly from Firebase:', err);
+          toast.error('Could not delete from Firebase', err?.message || 'Please try again.');
+          return; // Halt local deletion if server deletion failed
+        }
       }
     }
 
     const updated = questions.filter(q => q.id !== id);
     setQuestions(updated);
     saveStoredQuestions(courseCode, examType, updated);
+    if (editingId === id) cancelEditing();
+    toast.success('Question deleted');
   };
 
   // ─── Upload to Firebase ─────────────────────────────────────────
