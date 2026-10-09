@@ -2,6 +2,8 @@ import { StrictMode, Component } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App.jsx';
 import './index.css';
+import './styles/neopop.css';
+import './styles/admin-neopop.css';
 
 class ErrorBoundary extends Component {
   constructor(props) {
@@ -16,14 +18,21 @@ class ErrorBoundary extends Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div style={{ padding: '2rem', color: 'red', fontFamily: 'monospace' }}>
-          <h1>🛑 React Crash!</h1>
-          <p>Please send this exact error back to me:</p>
-          <pre style={{ background: '#f8d7da', padding: '1rem', overflowX: 'auto' }}>
-            {this.state.error?.toString()}
-            <br />
-            {this.state.error?.stack}
-          </pre>
+        <div className="crash-screen">
+          <span className="neo-eyebrow">Something broke</span>
+          <h1 className="neo-display">We hit a snag.</h1>
+          <p>Reloading usually fixes it. If it keeps happening, share the details below with the team.</p>
+          <button type="button" className="crash-screen__btn" onClick={() => window.location.reload()}>
+            Reload ExamSync
+          </button>
+          <details>
+            <summary>Technical details</summary>
+            <pre>
+              {this.state.error?.toString()}
+              {'\n'}
+              {this.state.error?.stack}
+            </pre>
+          </details>
         </div>
       );
     }

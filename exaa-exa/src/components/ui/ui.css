@@ -1,0 +1,257 @@
+/* ─── NeoButton ─── */
+.neo-btn.neo-btn {
+  flex-shrink: 0;
+  /* NeoPOP sets height:100%, which stretches the plunk edges inside flex/grid parents */
+  height: auto;
+  align-self: flex-start;
+}
+
+.neo-btn--full.neo-btn--full {
+  align-self: stretch;
+}
+
+.neo-btn--full {
+  width: 100%;
+}
+
+.neo-btn--full > .button-face {
+  width: auto;
+}
+
+.neo-btn__label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.neo-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.neo-btn:disabled {
+  cursor: not-allowed;
+}
+
+.neo-spin {
+  animation: spin 0.9s linear infinite;
+}
+
+/* ─── Segmented ─── */
+.neo-seg {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  background: var(--surface-card);
+  border: 1px solid var(--border);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.neo-seg::-webkit-scrollbar {
+  display: none;
+}
+
+.neo-seg__item {
+  flex: 1 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 14px;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  background: transparent;
+  border: 0;
+  white-space: nowrap;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.neo-seg--small .neo-seg__item {
+  padding: 7px 10px;
+  font-size: 0.75rem;
+}
+
+.neo-seg__item:hover:not(:disabled):not(.is-active) {
+  color: var(--text-primary);
+  background: var(--surface-elevated);
+}
+
+.neo-seg__item.is-active {
+  color: var(--bg-primary);
+  background: var(--accent);
+  box-shadow: 3px 3px 0 var(--accent-edge-b);
+}
+
+.neo-seg__item:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.neo-seg__badge {
+  min-width: 20px;
+  padding: 1px 6px;
+  font-size: 0.6875rem;
+  font-weight: 800;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.neo-seg__item.is-active .neo-seg__badge {
+  background: rgba(13, 13, 13, 0.15);
+}
+
+/* ─── Empty state ─── */
+.neo-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 10px;
+  padding: 40px 20px;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.neo-empty--compact {
+  padding: 24px 16px;
+}
+
+.neo-empty__title {
+  margin-top: 8px;
+  font-size: 1.0625rem;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.neo-empty__message {
+  max-width: 300px;
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+
+.neo-empty__action {
+  margin-top: 10px;
+}
+
+/* ─── Confirm dialog ─── */
+.neo-dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(4px);
+  animation: fadeIn 0.15s ease-out;
+}
+
+.neo-dialog {
+  width: 100%;
+  max-width: 400px;
+  animation: scaleIn 0.18s ease-out;
+}
+
+.neo-dialog__body {
+  padding: 24px;
+  border: 1px solid var(--border-light);
+}
+
+.neo-dialog__title {
+  font-size: 1.125rem;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.neo-dialog__message {
+  margin-top: 8px;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+.neo-dialog__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+/* ─── Toasts ─── */
+.neo-toasts {
+  position: fixed;
+  top: calc(16px + env(safe-area-inset-top, 0px));
+  left: 50%;
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: min(420px, calc(100vw - 32px));
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.neo-toast {
+  --toast-edge: var(--accent-edge-b);
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 12px 12px 14px;
+  color: var(--text-primary);
+  background: var(--surface-elevated);
+  border: 1px solid var(--border-light);
+  border-left: 4px solid var(--toast-color, var(--accent));
+  box-shadow: 4px 4px 0 var(--toast-edge), 0 16px 40px rgba(0, 0, 0, 0.5);
+  pointer-events: auto;
+  animation: toastIn 0.22s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.neo-toast--success { --toast-color: var(--color-success); --toast-edge: #035C35; }
+.neo-toast--warning { --toast-color: var(--accent); --toast-edge: var(--accent-edge-b); }
+.neo-toast--error   { --toast-color: var(--color-error); --toast-edge: #6E2319; }
+
+.neo-toast__icon {
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: var(--toast-color);
+}
+
+.neo-toast__text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+}
+
+.neo-toast__text strong {
+  font-size: 0.875rem;
+  font-weight: 800;
+}
+
+.neo-toast__text span {
+  color: var(--text-secondary);
+  overflow-wrap: anywhere;
+}
+
+.neo-toast__close {
+  flex-shrink: 0;
+  display: flex;
+  padding: 2px;
+  color: var(--text-muted);
+}
+
+.neo-toast__close:hover {
+  color: var(--text-primary);
+}
+
+@keyframes toastIn {
+  from { opacity: 0; transform: translateY(-12px) scale(0.97); }
+  to   { opacity: 1; transform: none; }
+}

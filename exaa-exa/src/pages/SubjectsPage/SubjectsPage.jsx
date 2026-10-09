@@ -1,60 +1,64 @@
-import { useEffect, useRef, useState } from 'react';
-import { ArrowUpRight } from 'lucide-react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import Header from '../../components/Header/Header';
+import { useEffect, useState } from 'react';
+import { ArrowUpRight, Info, RotateCcw } from 'lucide-react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { CardSkeleton } from '../../components/Loader/Loader';
+import Logo from '../../components/brand/Logo';
+import AbstractArt from '../../components/brand/AbstractArt';
+import { CoinIcon } from '../../components/brand/Illustrations';
+import Segmented from '../../components/ui/Segmented';
+import EmptyState from '../../components/ui/EmptyState';
+import NeoButton from '../../components/ui/NeoButton';
+import { toneFor } from '../../theme/neopop';
 import api from '../../services/api';
 import './SubjectsPage.css';
 
-/* ─── Palette cycling for hero cards ─── */
-const PALETTES = [
-  { bg: 'linear-gradient(145deg,#3a3adb 0%,#6b21a8 100%)', icon: '⚙️' },
-  { bg: 'linear-gradient(145deg,#0f766e 0%,#134e4a 100%)', icon: '🌐' },
-  { bg: 'linear-gradient(145deg,#be185d 0%,#9f1239 100%)', icon: '🧠' },
-  { bg: 'linear-gradient(145deg,#b45309 0%,#78350f 100%)', icon: '📡' },
-  { bg: 'linear-gradient(145deg,#1d4ed8 0%,#1e3a5f 100%)', icon: '💻' },
-  { bg: 'linear-gradient(145deg,#065f46 0%,#14532d 100%)', icon: '🔬' },
+const SEMESTERS_BY_YEAR = { 1: [1, 2], 2: [3, 4], 3: [5, 6], 4: [7, 8] };
+const BRANCHES = ['CSE', 'ECE', 'EEE', 'MECH'];
+const CATEGORIES = [
+  { value: 'Professional Core', label: 'Core' },
+  { value: 'Professional Elective', label: 'Electives' },
 ];
+const FILTERS_KEY = 'examsync_filters';
 
-/* ─── Hero subject card ─── */
-function SubjectHeroCard({ subject, index, onClick }) {
-  const p = PALETTES[index % PALETTES.length];
+function readFilters() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(FILTERS_KEY) || '{}');
+    const year = SEMESTERS_BY_YEAR[saved.year] ? saved.year : 3;
+    const semester = SEMESTERS_BY_YEAR[year].includes(saved.semester) ? saved.semester : SEMESTERS_BY_YEAR[year][1];
+    return { year, semester };
+  } catch {
+    return { year: 3, semester: 6 };
+  }
+}
+
+/* ─── Subject card ─── */
+function SubjectCard({ subject, index, onOpen }) {
+  const tone = toneFor(subject.courseCode || subject.id);
   return (
-    <div
-      className="shc"
-      style={{ background: p.bg, animationDelay: `${index * 70}ms` }}
-      onClick={() => onClick(subject)}
-      role="button"
-      tabIndex={0}
-      onKeyDown={e => e.key === 'Enter' && onClick(subject)}
+    <button
+      type="button"
+      className="subject-tile neo-plunk neo-plunk--press"
+      style={{
+        '--edge-r': tone.right,
+        '--edge-b': tone.bottom,
+        '--tile-face': tone.face,
+        '--tile-ink': tone.ink,
+        animationDelay: `${Math.min(index, 8) * 60}ms`,
+      }}
+      onClick={() => onOpen(subject)}
     >
-      {/* Top-left chip */}
-      <div className='course_code_arrow'>
-        <div className="shc__chip">
-          {subject.courseCode}
-        </div>
-
-        {/* Course code top-right */}
-        <div className="shc__code"><span className="shc__arrow"><ArrowUpRight size={16} /></span></div>
+      <div className="subject-tile__body">
+        <span className="subject-tile__code">{subject.courseCode}</span>
+        <h3 className="subject-tile__name">{subject.name}</h3>
+        {subject.description && <p className="subject-tile__desc">{subject.description}</p>}
+        <span className="subject-tile__cta">
+          Start prepping <ArrowUpRight size={16} strokeWidth={2.6} />
+        </span>
       </div>
-      {/* Illustration */}
-      <div className="shc__illus">
-        <div className="shc__blob" />
-        <span className="shc__emoji">{p.icon}</span>
+      <div className="subject-tile__art">
+        <AbstractArt seed={subject.courseCode || subject.id} tone={tone} size={112} />
       </div>
-
-      {/* Content */}
-      <h2 className="shc__name">{subject.name}</h2>
-      {subject.description && (
-        <p className="shc__desc">{subject.description}</p>
-      )}
-
-      {/* Footer */}
-      <div className="shc__footer">
-        <span className="shc__explore">Explore now!</span>
-        
-      </div>
-    </div>
+    </button>
   );
 }
 
@@ -67,29 +71,26 @@ export default function SubjectsPage() {
   const urlUid = searchParams.get('uid');
   const userId = urlUid || localStorage.getItem('examsync_user_id') || '';
 
-  const [userName, setUserName]   = useState(() => localStorage.getItem('examsync_user_name') || 'Student');
-  const [userCoins, setUserCoins] = useState(0);
-  const [subjects, setSubjects]   = useState([]);
-  const [loading, setLoading]     = useState(true);
-  const [error, setError]         = useState(false);
+  const [userName, setUserName] = useState(() => localStorage.getItem('examsync_user_name') || 'Student');
+  const [userCoins, setUserCoins] = useState(null);
+  const [subjects, setSubjects] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
   const [activeTab, setActiveTab] = useState('Professional Core');
-  const [semester, setSemester]   = useState(6);
-  const [year, setYear]           = useState(3);
-  const [branch, setBranch]       = useState('CSE');
-
-  const semesterByYear = {
-    1: [1, 2],
-    2: [3, 4],
-    3: [5, 6],
-    4: [7, 8],
-  };
-  const allowedSemesters = semesterByYear[year] ?? [];
+  const [{ year, semester }, setFilters] = useState(readFilters);
+  const [branch, setBranch] = useState('CSE');
 
   useEffect(() => {
-    if (!allowedSemesters.includes(semester)) {
-      setSemester(allowedSemesters[0] ?? 1);
-    }
-  }, [allowedSemesters, semester]);
+    try { localStorage.setItem(FILTERS_KEY, JSON.stringify({ year, semester })); } catch { /* ignore */ }
+  }, [year, semester]);
+
+  const changeYear = (y) => {
+    setFilters((prev) => ({
+      year: y,
+      semester: SEMESTERS_BY_YEAR[y].includes(prev.semester) ? prev.semester : SEMESTERS_BY_YEAR[y][0],
+    }));
+  };
 
   /* Fetch subjects when semester changes */
   useEffect(() => {
@@ -107,7 +108,7 @@ export default function SubjectsPage() {
       }
     };
     fetchSubjects();
-  }, [semester]);
+  }, [semester, reloadKey]);
 
   /* Save userId to localStorage & fetch user profile */
   useEffect(() => {
@@ -116,7 +117,7 @@ export default function SubjectsPage() {
       // Persist userId for other pages and back-navigation
       localStorage.setItem('examsync_user_id', userId);
       try {
-        const res  = await api.getUserById(userId);
+        const res = await api.getUserById(userId);
         const data = res.data || {};
         const name =
           data.name || data.fullName || data.displayName ||
@@ -132,169 +133,122 @@ export default function SubjectsPage() {
     fetchUser();
   }, [userId]);
 
-  /* Navigate to subject details — same pattern as original SubjectCard */
-  const handleCardClick = (subject) => {
+  const handleOpen = (subject) => {
     navigate(`/subject/${subject.id}?uid=${encodeURIComponent(userId)}`);
   };
 
-  /* Error state */
-  if (error) {
-    return (
-      <div className="page es-page">
-        <div className="es-appbar">
-          <span className="es-appbar__title">ExamSync</span>
-          <div className="es-appbar__coins">
-            <span>🪙</span>
-            <span className="es-coins-label">Aal Coins</span>
-            <span className="es-coins-value">0</span>
-          </div>
-        </div>
-        <div className="es-error">
-          <p>Failed to load subjects from Firebase.</p>
-          <button
-            className="es-retry-btn"
-            onClick={() => window.location.reload()}
-          >
-            Retry
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  const categories       = ['Professional Core', 'Professional Elective'];
-  const filteredSubjects = subjects.filter(s => s.courseType === activeTab);
+  const countFor = (cat) => subjects.filter((s) => s.courseType === cat).length;
+  const filteredSubjects = subjects.filter((s) => s.courseType === activeTab);
+  const firstName = String(userName).trim().split(/\s+/)[0];
 
   return (
-    <div className="page es-page">
+    <div className="page es-home">
+      {/* ── App bar ── */}
+      <header className="es-appbar">
+        <Logo size={30} />
+        {userCoins !== null && (
+          <div className="es-coins" title="Your coin balance">
+            <CoinIcon size={18} />
+            <span className="es-coins__value">{userCoins}</span>
+            <span className="es-coins__label">coins</span>
+          </div>
+        )}
+      </header>
 
-      <main className="es-main">
-
+      <main className="es-home__main">
         {/* ── Greeting ── */}
-        <div className="es-header">
-          <p className="es-header__hey">HEY,</p>
-          <h1 className="es-header__name">{userName}</h1>
-          <p className="es-header__sub">No stress, just smart prep.</p>
-        </div>
+        <section className="es-greet">
+          <span className="neo-eyebrow">Hey there,</span>
+          <h1 className="es-greet__name neo-display">{firstName}</h1>
+          <p className="es-greet__sub">No stress, just smart prep.</p>
+        </section>
 
-        {/* ── Single merged Stats + Dropdowns card ── */}
-        <div className="es-stats-card">
-
-          {/* Top: big display values */}
-          {/* <div className="es-stats-row">
-            <div className="es-stat">
-              <span className="es-stat__label">YEAR</span>
-              <span className="es-stat__value">{year}</span>
-            </div>
-            <div className="es-stat-divider" />
-            <div className="es-stat">
-              <span className="es-stat__label">SEM</span>
-              <span className="es-stat__value">{semester}</span>
-            </div>
-            <div className="es-stat-divider" />
-            <div className="es-stat">
-              <span className="es-stat__label">BRANCH</span>
-              <span className="es-stat__value es-stat__value--sm">{branch}</span>
-            </div>
-          </div> */}
-
-          {/* Divider */}
-          <div className="es-card-divider" />
-
-          {/* Bottom: dropdowns */}
-          <div className="es-dropdowns-row">
-            <div className="es-dropdown-group">
-              <label className="es-dropdown-label" htmlFor="sel-year">Year</label>
-              <select
-                id="sel-year"
-                className="es-dropdown-select"
-                value={year}
-                onChange={e => setYear(Number(e.target.value))}
-                aria-label="Select year"
-              >
-                {[1,2,3,4].map(v => (
-                  <option key={v} value={v}>{v}</option>
-                ))}
-              </select>
-            </div>
-            <div className="es-dropdown-sep" />
-            <div className="es-dropdown-group">
-              <label className="es-dropdown-label" htmlFor="sel-sem">Semester</label>
-              <select
-                id="sel-sem"
-                className="es-dropdown-select"
+        {/* ── Filters ── */}
+        <section className="es-filters" aria-label="Choose your class">
+          <div className="es-filter">
+            <span className="neo-label">Year</span>
+            <Segmented
+              size="small"
+              ariaLabel="Year"
+              value={year}
+              onChange={changeYear}
+              options={[1, 2, 3, 4].map((v) => ({ value: v, label: `Year ${v}` }))}
+            />
+          </div>
+          <div className="es-filter-row">
+            <div className="es-filter">
+              <span className="neo-label">Semester</span>
+              <Segmented
+                size="small"
+                ariaLabel="Semester"
                 value={semester}
-                onChange={e => setSemester(Number(e.target.value))}
-                aria-label="Select semester"
-              >
-                {allowedSemesters.map(v => (
-                  <option key={v} value={v}>{v}</option>
-                ))}
-              </select>
+                onChange={(s) => setFilters((prev) => ({ ...prev, semester: s }))}
+                options={SEMESTERS_BY_YEAR[year].map((v) => ({ value: v, label: `Sem ${v}` }))}
+              />
             </div>
-            <div className="es-dropdown-sep" />
-            <div className="es-dropdown-group">
-              <label className="es-dropdown-label" htmlFor="sel-branch">Branch</label>
-              <select
-                id="sel-branch"
-                className="es-dropdown-select"
+            <div className="es-filter">
+              <span className="neo-label">Branch</span>
+              <Segmented
+                size="small"
+                ariaLabel="Branch"
                 value={branch}
-                onChange={e => setBranch(e.target.value)}
-                aria-label="Select branch"
-              >
-                {['CSE','ECE','EEE','MECH'].map(v => (
-                  <option key={v} value={v} disabled={v !== 'CSE'}>{v}</option>
-                ))}
-              </select>
+                onChange={setBranch}
+                options={BRANCHES.map((b) => ({ value: b, label: b, disabled: b !== 'CSE' }))}
+              />
             </div>
           </div>
-        </div>
+        </section>
 
-        {/* ── Note ── */}
-        <p style={{ fontSize: '12px', color: '#FFD700', fontWeight: 600, margin: '0 0 10px 4px', letterSpacing: '0.3px' }}>
-          Note : This feature is currently available for GMRIT 3rd Year CSE Students only.
-We will be expanding soon.
-        </p>
-
-        {/* ── Category Tabs ── */}
-        <div className="es-tabs">
-          {categories.map(cat => (
-            <button
-              key={cat}
-              className={`es-tab${activeTab === cat ? ' es-tab--active' : ''}`}
-              onClick={() => setActiveTab(cat)}
-            >
-              {cat}
-            </button>
-          ))}
+        <div className="neo-alert es-notice">
+          <Info size={16} />
+          <span>
+            Live for <strong>GMRIT 3rd-year CSE</strong> right now. More colleges and branches are coming soon.
+          </span>
         </div>
 
         {/* ── Subjects ── */}
-        <div className="es-subjects">
-          <div className="es-subjects__header">
-            <span className="es-subjects__title">SUBJECTS</span>
-            <span className="es-subjects__count">{filteredSubjects.length}</span>
+        <section className="es-subjects">
+          <div className="es-subjects__head">
+            <h2 className="es-subjects__title">Your subjects</h2>
+            <Segmented
+              size="small"
+              ariaLabel="Course type"
+              value={activeTab}
+              onChange={setActiveTab}
+              options={CATEGORIES.map((c) => ({ ...c, badge: loading ? null : countFor(c.value) }))}
+            />
           </div>
 
-          {loading ? (
+          {error ? (
+            <EmptyState
+              title="Couldn't load subjects"
+              message="Check your connection and try again."
+              action={
+                <NeoButton variant="secondary" icon={RotateCcw} onClick={() => setReloadKey((k) => k + 1)}>
+                  Try again
+                </NeoButton>
+              }
+            />
+          ) : loading ? (
             <CardSkeleton count={3} />
           ) : filteredSubjects.length === 0 ? (
-            <div className="es-empty">
-              <p>No subjects found for Semester {semester} – {activeTab}.</p>
-              <p>Ask an admin to add subjects!</p>
-            </div>
+            <EmptyState
+              title="Nothing here yet"
+              message={`No ${activeTab === 'Professional Core' ? 'core' : 'elective'} subjects for Semester ${semester} yet. Check back soon!`}
+            />
           ) : (
-            filteredSubjects.map((subject, index) => (
-              <SubjectHeroCard
-                key={subject.id}
-                subject={subject}
-                index={index}
-                onClick={handleCardClick}
-              />
-            ))
+            <div className="es-subjects__list">
+              {filteredSubjects.map((subject, index) => (
+                <SubjectCard key={subject.id} subject={subject} index={index} onOpen={handleOpen} />
+              ))}
+            </div>
           )}
-        </div>
+        </section>
 
+        <footer className="es-home__foot">
+          <span>Faculty or content author?</span>
+          <Link to="/login">Staff sign in →</Link>
+        </footer>
       </main>
     </div>
   );

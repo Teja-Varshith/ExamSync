@@ -1,5 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { ConfirmProvider } from './components/ui/ConfirmDialog';
+import Toaster from './components/ui/Toaster';
 
 // Student pages
 import SubjectsPage from './pages/SubjectsPage/SubjectsPage';
@@ -71,7 +73,10 @@ function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <AppRoutes />
+        <ConfirmProvider>
+          <AppRoutes />
+          <Toaster />
+        </ConfirmProvider>
       </AuthProvider>
     </BrowserRouter>
   );

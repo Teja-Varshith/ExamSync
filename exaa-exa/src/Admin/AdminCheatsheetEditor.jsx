@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
-  ArrowLeft, Save, Trash2, PencilLine, ChevronRight,
-  Upload, X, Check, Type, Image as ImageIcon, Plus
+  ArrowRight, Save, Trash2, PencilLine, ChevronRight, ChevronLeft,
+  X, Check, Image as ImageIcon, Plus, CloudUpload, Eye, Sparkles, Code2, Type
 } from 'lucide-react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
@@ -13,6 +13,16 @@ import { db } from '../firebase';
 import { doc, getDoc, updateDoc, setDoc, deleteField } from 'firebase/firestore';
 import { getCollegeId } from '../services/api';
 import { uploadImageToSupabase, processHtmlImages } from '../supabase';
+import AdminLayout from '../components/layout/AdminLayout';
+import NeoButton from '../components/ui/NeoButton';
+import { useConfirm } from '../components/ui/useConfirm';
+import toast from '../components/ui/toast';
+import Loader from '../components/Loader/Loader';
+import Segmented from '../components/ui/Segmented';
+import MobilePreview from './components/MobilePreview';
+import { aiFormatAnswer } from '../services/aiFormat';
+import { sanitizeHtml, isEditorCompatible, isHtmlEmpty } from '../utils/sanitizeHtml';
+import EmptyState from '../components/ui/EmptyState';
 
 // ─── Local Storage Helpers ───────────────────────────────────────
 const STORAGE_KEY = 'admin_cheatsheet_questions';
@@ -46,7 +56,7 @@ function triggerSupabaseImageUpload(editor, setUploading) {
       editor.chain().focus().setImage({ src: publicUrl, alt: file.name }).run();
     } catch (err) {
       console.error('Image upload failed:', err);
-      alert('Image upload failed: ' + (err?.message || 'Unknown error'));
+      toast.error('Image upload failed', err?.message || 'Please try again.');
     } finally {
       setUploading(false);
     }
@@ -54,23 +64,26 @@ function triggerSupabaseImageUpload(editor, setUploading) {
   input.click();
 }
 
-// ─── Dark Toolbar Component ──────────────────────────────────────
-function DarkEditorToolbar({ editor, uploading, setUploading }) {
-  if (!editor) return null;
-
-  const ToolbarBtn = ({ onClick, isActive, disabled, title, children }) => (
+function ToolbarBtn({ onClick, isActive, disabled, title, children }) {
+  return (
     <button
       type="button"
       onClick={onClick}
       disabled={disabled}
       title={title}
+      aria-label={title}
       className={`admin-editor-toolbar-btn ${isActive ? 'active' : ''}`}
     >
       {children}
     </button>
   );
+}
 
-  const Divider = () => <div className="admin-editor-toolbar-divider" />;
+const Divider = () => <div className="admin-editor-toolbar-divider" />;
+
+// ─── Dark Toolbar Component ──────────────────────────────────────
+function DarkEditorToolbar({ editor, uploading, setUploading }) {
+  if (!editor) return null;
 
   return (
     <div className="admin-editor-toolbar">
@@ -191,15 +204,29 @@ export default function AdminCheatsheetEditor() {
     examLabel = 'MID 1',
   } = location.state || {};
 
+  const confirm = useConfirm();
+
   // Editor state
   const [questionType, setQuestionType] = useState('Pakka Chadavali Amma');
   const [question, setQuestion] = useState('');
-  const [answerHtml, setAnswerHtml] = useState('');
+  const [answerHtml, setAnswerHtml] = useState(''); // "Normal" rich-text editor HTML
+
+  // "HTML code" section — AI-generated / hand-edited HTML
+  const [codeHtml, setCodeHtml] = useState('');
+  const [lastAiHtml, setLastAiHtml] = useState('');
+  const [useCode, setUseCode] = useState(false); // which version is pushed & shown to students
+  const [answerTab, setAnswerTab] = useState('normal');
+  const [aiLoading, setAiLoading] = useState(false);
+  const [preview, setPreview] = useState(null); // { items, startIndex, title }
+
+  // What students will actually see for the question in the editor
+  const finalAnswer = useCode ? codeHtml : answerHtml;
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [editorKey, setEditorKey] = useState(0);
   const [uploading, setUploading] = useState(false);
   const [loadingQuestions, setLoadingQuestions] = useState(true);
+  const [isRightPanelOpen, setIsRightPanelOpen] = useState(true);
 
   // Dynamic tags — admin can add new ones
   const [tagOptions, setTagOptions] = useState([...DEFAULT_TAGS]);
@@ -210,15 +237,6 @@ export default function AdminCheatsheetEditor() {
 
   // Edit mode
   const [editingId, setEditingId] = useState(null);
-  const [editQuestion, setEditQuestion] = useState('');
-  const [editAnswerHtml, setEditAnswerHtml] = useState('');
-  const [editType, setEditType] = useState('Pakka Chadavali Amma');
-  const [editEditorKey, setEditEditorKey] = useState(100);
-
-  useEffect(() => {
-    document.body.classList.add('admin-mode');
-    return () => document.body.classList.remove('admin-mode');
-  }, []);
 
   // Load questions: Firebase first, then localStorage fallback
   const examKeyMap = { mid1: 'Mid 1', mid2: 'Mid 2', sem: 'Sem' };
@@ -286,7 +304,7 @@ export default function AdminCheatsheetEditor() {
     const tag = newTagInput.trim();
     if (!tag) return;
     if (tagOptions.includes(tag)) {
-      alert('This tag already exists!');
+      toast.warning('That tag already exists');
       return;
     }
     setTagOptions(prev => [...prev, tag]);
@@ -295,37 +313,151 @@ export default function AdminCheatsheetEditor() {
   };
 
   // Remove a custom tag (only non-default ones)
-  const handleRemoveTag = (tag) => {
+  const handleRemoveTag = async (tag) => {
     if (DEFAULT_TAGS.includes(tag)) return; // Can't remove defaults
-    if (!window.confirm(`Remove tag "${tag}"?`)) return;
+    const inUse = questions.filter(q => q.questionType === tag).length;
+    const ok = await confirm({
+      title: `Remove tag “${tag}”?`,
+      message: inUse
+        ? `${inUse} question${inUse !== 1 ? 's' : ''} still use this tag and will keep it until you edit them.`
+        : 'No questions use this tag.',
+      confirmLabel: 'Remove tag',
+      tone: 'danger',
+    });
+    if (!ok) return;
     setTagOptions(prev => prev.filter(t => t !== tag));
-    // If currently selected tag is being removed, switch to first tag
-    if (questionType === tag) setQuestionType(tagOptions[0] || DEFAULT_TAGS[0]);
-    if (editType === tag) setEditType(tagOptions[0] || DEFAULT_TAGS[0]);
+    // If currently selected tag is being removed, switch to first default tag
+    if (questionType === tag) setQuestionType(DEFAULT_TAGS[0]);
   };
 
-  // Save new question
+  const resetCodeState = () => {
+    setCodeHtml('');
+    setLastAiHtml('');
+    setUseCode(false);
+    setAnswerTab('normal');
+  };
+
+  // ── AI: Normal answer → structured HTML (Groq via /api/ai-format) ──
+  const handleAiFormat = async () => {
+    if (isHtmlEmpty(answerHtml)) {
+      toast.warning('Write the answer in Normal first', 'AI formats what you typed in the Normal editor.');
+      setAnswerTab('normal');
+      return;
+    }
+    if (codeHtml && codeHtml !== lastAiHtml) {
+      const ok = await confirm({
+        title: 'Replace your HTML code?',
+        message: 'AI will regenerate it from the Normal answer. Edits you made in the HTML code section will be lost.',
+        confirmLabel: 'Regenerate',
+        tone: 'premium',
+      });
+      if (!ok) return;
+    }
+    setAiLoading(true);
+    try {
+      const html = await aiFormatAnswer({ question: question.trim(), answerHtml });
+      setCodeHtml(html);
+      setLastAiHtml(html);
+      setUseCode(true);
+      setAnswerTab('code');
+      toast.success('Answer formatted', 'Review the HTML code, then Preview it.');
+    } catch (err) {
+      console.error('AI format failed:', err);
+      toast.error('AI formatting failed', err.message);
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
+  const previewDraft = () => {
+    if (!question.trim() && isHtmlEmpty(finalAnswer)) {
+      toast.warning('Nothing to preview yet', 'Write a question and an answer first.');
+      return;
+    }
+    setPreview({
+      title: 'Preview · current draft',
+      startIndex: 0,
+      items: [{ question: question.trim(), answer: finalAnswer, tag: questionType }],
+    });
+  };
+
+  const previewSaved = (index) => {
+    setPreview({
+      title: 'Preview · saved questions',
+      startIndex: index,
+      items: questions.map((q) => ({ question: q.question, answer: q.answerHtml, tag: q.questionType })),
+    });
+  };
+
+  // Start editing in the main left panel
+  const startEditing = async (q) => {
+    const dirty = editingId || question.trim() || !isHtmlEmpty(answerHtml) || codeHtml.trim();
+    if (dirty && q.id !== editingId) {
+      const ok = await confirm({
+        title: 'Discard current draft?',
+        message: 'The question open in the editor has changes that are not pushed yet.',
+        confirmLabel: 'Discard & edit',
+        tone: 'danger',
+      });
+      if (!ok) return;
+    }
+    setEditingId(q.id);
+    setQuestion(q.question);
+    setAnswerHtml(q.answerHtml);
+    // Rich HTML (tables, h4…) can't round-trip through the Normal editor — open it as code
+    const asCode = !isEditorCompatible(q.answerHtml);
+    setCodeHtml(q.answerHtml);
+    setLastAiHtml(q.answerHtml);
+    setUseCode(asCode);
+    setAnswerTab(asCode ? 'code' : 'normal');
+    setQuestionType(q.questionType || 'Pakka Chadavali Amma');
+    setEditorKey(k => k + 1);
+  };
+
+  const cancelEditing = () => {
+    setEditingId(null);
+    setQuestion('');
+    setAnswerHtml('');
+    resetCodeState();
+    setQuestionType(tagOptions[0] || DEFAULT_TAGS[0]);
+    setEditorKey(k => k + 1);
+  };
+
+  // Unified save or update question
   const handleSave = () => {
     if (!question.trim()) {
-      alert('Please enter a question title.');
+      toast.warning('Add the question first', 'Type it in the title field above the answer.');
       return;
     }
-    if (!answerHtml || answerHtml === '<p></p>') {
-      alert('Please write an answer before saving.');
+    if (isHtmlEmpty(finalAnswer)) {
+      toast.warning(
+        'Write an answer before pushing',
+        useCode ? 'The HTML code section is selected but empty.' : undefined
+      );
       return;
     }
+    const answerToSave = useCode ? sanitizeHtml(codeHtml) : answerHtml;
 
     setSaving(true);
     setTimeout(() => {
-      const newQ = {
-        id: `q_${Date.now()}`,
-        questionType,
-        question: question.trim(),
-        answerHtml,
-        createdAt: new Date().toISOString(),
-      };
+      let updated;
+      if (editingId) {
+        updated = questions.map(q =>
+          q.id === editingId
+            ? { ...q, question: question.trim(), answerHtml: answerToSave, questionType }
+            : q
+        );
+      } else {
+        const newQ = {
+          id: `q_${Date.now()}`,
+          questionType,
+          question: question.trim(),
+          answerHtml: answerToSave,
+          createdAt: new Date().toISOString(),
+        };
+        updated = [...questions, newQ];
+      }
 
-      const updated = [...questions, newQ];
       setQuestions(updated);
       saveStoredQuestions(courseCode, examType, updated);
 
@@ -333,18 +465,27 @@ export default function AdminCheatsheetEditor() {
       setSaved(true);
 
       setTimeout(() => {
+        setEditingId(null);
         setQuestion('');
         setAnswerHtml('');
+        resetCodeState();
         setSaved(false);
         setEditorKey(k => k + 1);
+        setIsRightPanelOpen(true);
       }, 1500);
     }, 400);
   };
 
   // Delete question
   const handleDelete = async (id) => {
-    if (!window.confirm('Delete this question permanently?')) return;
-    
+    const ok = await confirm({
+      title: 'Delete this question?',
+      message: 'Questions already saved to Firebase are removed for students immediately.',
+      confirmLabel: 'Delete',
+      tone: 'danger',
+    });
+    if (!ok) return;
+
     const qToRemove = questions.find(q => q.id === id);
     if (!qToRemove) return;
 
@@ -353,10 +494,10 @@ export default function AdminCheatsheetEditor() {
       try {
         const examMap = { mid1: 'Mid 1', mid2: 'Mid 2', sem: 'Sem' };
         const firebaseExamKey = examMap[examType] || examType;
-        
+
         // Extract the original Firebase map key (e.g., "1", "2") from something like "fb_1_1712xxxxxx"
         const originalKey = qToRemove.id.split('_')[1];
-        
+
         if (originalKey) {
           const examRef = doc(db, 'examsync', getCollegeId(), 'subjects', courseCode, 'exam_data', 'ImpQuestions');
           await updateDoc(examRef, {
@@ -365,7 +506,7 @@ export default function AdminCheatsheetEditor() {
         }
       } catch (err) {
         console.error('Failed to delete directly from Firebase:', err);
-        alert('Failed to delete from Firebase. Please try again.');
+        toast.error('Could not delete from Firebase', 'Please try again.');
         return; // Halt local deletion if server deletion failed
       }
     }
@@ -375,47 +516,19 @@ export default function AdminCheatsheetEditor() {
     saveStoredQuestions(courseCode, examType, updated);
   };
 
-  // Start editing
-  const startEditing = (q) => {
-    setEditingId(q.id);
-    setEditQuestion(q.question);
-    setEditAnswerHtml(q.answerHtml);
-    setEditType(q.questionType || 'Pakka Chadavali Amma');
-    setEditEditorKey(k => k + 1);
-  };
-
-  const cancelEditing = () => {
-    setEditingId(null);
-    setEditQuestion('');
-    setEditAnswerHtml('');
-    setEditType('Pakka Chadavali Amma');
-  };
-
-  // Save edits
-  const handleUpdateQuestion = () => {
-    if (!editQuestion.trim()) {
-      alert('Question cannot be empty.');
-      return;
-    }
-    const updated = questions.map(q =>
-      q.id === editingId
-        ? { ...q, question: editQuestion.trim(), answerHtml: editAnswerHtml, questionType: editType }
-        : q
-    );
-    setQuestions(updated);
-    saveStoredQuestions(courseCode, examType, updated);
-    cancelEditing();
-  };
-
   // ─── Upload to Firebase ─────────────────────────────────────────
   const handleUploadToFirebase = async () => {
     if (questions.length === 0) {
-      if (!window.confirm('There are no questions in this cheatsheet. Saving will delete all questions for this exam from Firebase. Continue?')) {
-        return;
-      }
+      const ok = await confirm({
+        title: 'Save an empty cheat sheet?',
+        message: 'This removes every question for this exam from Firebase.',
+        confirmLabel: 'Clear exam',
+        tone: 'danger',
+      });
+      if (!ok) return;
     }
     if (!courseCode) {
-      alert('Subject code not found. Cannot save.');
+      toast.error('Subject code missing', 'Go back to the subject and open the cheat sheet again.');
       return;
     }
 
@@ -470,284 +583,313 @@ export default function AdminCheatsheetEditor() {
       saveStoredQuestions(courseCode, examType, updated);
       setQuestion('');
       setAnswerHtml('');
+      resetCodeState();
       setEditorKey(k => k + 1);
 
-      alert(`✅ Cheatsheet saved to Firebase under "${firebaseExamKey}" successfully!`);
+      toast.success(`${examLabel} cheat sheet saved`, 'Students can see the questions now.');
       navigate('/admin/cheatsheets', { state: { subjectName, courseCode, semester } });
     } catch (err) {
       console.error('Firebase save failed:', err);
-      alert('❌ Save failed: ' + (err?.message || 'Unknown error'));
+      toast.error('Save failed', err?.message || 'Please try again.');
     } finally {
       setUploading(false);
     }
   };
 
   return (
-    <div className="admin-page">
-      <div className="admin-shell admin-editor-shell">
-        {/* Breadcrumb */}
-        <div className="admin-editor-breadcrumb">
-          <button onClick={() => navigate('/admin')} className="admin-editor-breadcrumb-link">
-            Dashboard
-          </button>
-          <ChevronRight size={12} />
-          <button
-            onClick={() => navigate('/admin/cheatsheets', {
-              state: { subjectName, courseCode, semester }
-            })}
-            className="admin-editor-breadcrumb-link"
-          >
-            {subjectName}
-          </button>
-          <ChevronRight size={12} />
-          <span className="admin-editor-breadcrumb-current">
-            {examLabel} Cheatsheet
-          </span>
-        </div>
-
-        {/* Page Header */}
-        <div className="admin-editor-header">
-          <div className="admin-editor-header-left">
-            <h1 className="admin-editor-page-title">
-              {examLabel} — Cheatsheet
-            </h1>
-            <p className="admin-editor-page-subtitle">
-              <span className="admin-editor-subject-name">{subjectName}</span>
-              {courseCode && <span className="admin-editor-code-chip">{courseCode}</span>}
-            </p>
-          </div>
-          <button
-            onClick={() => navigate('/admin/cheatsheets', {
-              state: { subjectName, courseCode, semester }
-            })}
-            className="admin-editor-back-btn"
-          >
-            <ArrowLeft size={16} />
-            Back to Subject
-          </button>
-        </div>
-
-        {/* ═══ Editor Canvas ═══ */}
-        <div className="admin-editor-canvas">
-          {/* Top Meta Bar */}
-          <div className="admin-editor-meta-bar">
-            <div className="admin-editor-type-selector">
-              <span className="admin-editor-type-label">Tag:</span>
-              <div className="admin-editor-type-toggle">
-                {tagOptions.map((t) => (
-                  <button
-                    key={t}
-                    type="button"
-                    onClick={() => setQuestionType(t)}
-                    className={`admin-editor-type-btn ${questionType === t ? 'active' : ''}`}
-                  >
-                    {t}
-                    {!DEFAULT_TAGS.includes(t) && (
-                      <span
-                        className="admin-editor-tag-remove"
-                        onClick={(e) => { e.stopPropagation(); handleRemoveTag(t); }}
-                        title="Remove tag"
+    <AdminLayout
+      wide
+      crumbs={[
+        { label: 'Dashboard', to: '/admin' },
+        { label: subjectName, to: '/admin/cheatsheets', state: { subjectName, courseCode, semester } },
+        { label: `${examLabel} cheat sheet` },
+      ]}
+      eyebrow={`${subjectName}${courseCode ? ` · ${courseCode}` : ''}`}
+      title={`${examLabel} cheat sheet`}
+      subtitle="1. Pick a tag  →  2. Write the question & answer  →  3. Push to list  →  4. Save to Firebase"
+    >
+      <div className="admin-editor-page">
+        <div className="admin-editor-split-layout">
+          {/* ═══ Left Panel: Editor Canvas ═══ */}
+          <div className={`admin-editor-left-panel ${!isRightPanelOpen ? 'expanded' : ''}`}>
+            <div className="admin-editor-canvas">
+              {/* Top Meta Bar */}
+              <div className="admin-editor-meta-bar">
+                <div className="admin-editor-type-selector">
+                  <span className="neo-label">Tag</span>
+                  <div className="admin-editor-type-toggle">
+                    {tagOptions.map((t) => (
+                      <button
+                        key={t}
+                        type="button"
+                        onClick={() => setQuestionType(t)}
+                        className={`admin-editor-type-btn ${questionType === t ? 'active' : ''}`}
                       >
-                        ×
-                      </span>
-                    )}
-                  </button>
-                ))}
+                        {t}
+                        {!DEFAULT_TAGS.includes(t) && (
+                          <span
+                            className="admin-editor-tag-remove"
+                            role="button"
+                            aria-label={`Remove tag ${t}`}
+                            onClick={(e) => { e.stopPropagation(); handleRemoveTag(t); }}
+                            title="Remove tag"
+                          >
+                            <X size={12} />
+                          </span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="admin-editor-tag-add">
+                    <input
+                      type="text"
+                      value={newTagInput}
+                      onChange={(e) => setNewTagInput(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && handleAddTag()}
+                      placeholder="New tag…"
+                      className="neo-input admin-editor-tag-input"
+                      aria-label="New tag name"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleAddTag}
+                      className="neo-icon-btn"
+                      disabled={!newTagInput.trim()}
+                      aria-label="Add tag"
+                      title="Add tag"
+                    >
+                      <Plus size={16} />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="admin-editor-save-area">
+                  {saved && (
+                    <span className="neo-chip neo-chip--success">
+                      <Check size={12} /> {editingId ? 'Updated' : 'Added'}
+                    </span>
+                  )}
+                  {editingId && (
+                    <NeoButton variant="secondary" kind="flat" icon={X} onClick={cancelEditing} disabled={saving}>
+                      Cancel
+                    </NeoButton>
+                  )}
+                  <NeoButton
+                    onClick={handleSave}
+                    loading={saving}
+                    icon={editingId ? Save : undefined}
+                    iconRight={editingId ? undefined : ArrowRight}
+                  >
+                    {saving ? 'Saving…' : editingId ? 'Update question' : 'Push to list'}
+                  </NeoButton>
+                </div>
               </div>
-              <div className="admin-editor-tag-add">
+
+              {editingId && (
+                <div className="neo-alert admin-editor-editing-note">
+                  <PencilLine size={16} />
+                  <span>Editing <strong>Q{questions.findIndex(q => q.id === editingId) + 1}</strong>. Update it, or cancel to start a new question.</span>
+                </div>
+              )}
+
+              {/* Document Body */}
+              <div className="admin-editor-document">
                 <input
                   type="text"
-                  value={newTagInput}
-                  onChange={(e) => setNewTagInput(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleAddTag()}
-                  placeholder="New tag..."
-                  className="admin-editor-tag-input"
+                  value={question}
+                  onChange={(e) => setQuestion(e.target.value)}
+                  placeholder="Type the question…"
+                  className="admin-editor-title-input"
+                  aria-label="Question"
                 />
-                <button
-                  type="button"
-                  onClick={handleAddTag}
-                  className="admin-editor-tag-add-btn"
-                  disabled={!newTagInput.trim()}
-                >
-                  <Plus size={14} /> Add
-                </button>
+                <div className="ae-answerbar">
+                  <Segmented
+                    size="small"
+                    ariaLabel="Answer section"
+                    value={answerTab}
+                    onChange={setAnswerTab}
+                    options={[
+                      { value: 'normal', label: 'Normal', icon: Type, badge: useCode ? null : 'Live' },
+                      { value: 'code', label: 'HTML code', icon: Code2, badge: useCode ? 'Live' : null },
+                    ]}
+                  />
+                  <div className="ae-answerbar__actions">
+                    <NeoButton size="small" variant="secondary" kind="flat" icon={Eye} onClick={previewDraft}>
+                      Preview
+                    </NeoButton>
+                    <NeoButton
+                      size="small"
+                      variant="premium"
+                      icon={Sparkles}
+                      loading={aiLoading}
+                      onClick={handleAiFormat}
+                      title="Turn the Normal answer into structured HTML with AI"
+                    >
+                      {aiLoading ? 'Formatting…' : 'AI format'}
+                    </NeoButton>
+                  </div>
+                </div>
+
+                {/* NORMAL — rich-text editor (kept mounted so undo history survives tab switches) */}
+                <div hidden={answerTab !== 'normal'}>
+                  {useCode && (
+                    <div className="neo-alert ae-source-note">
+                      <Code2 size={16} />
+                      <span>
+                        Students will see the <strong>HTML code</strong> version.{' '}
+                        <button type="button" onClick={() => setUseCode(false)}>Use Normal instead</button>
+                      </span>
+                    </div>
+                  )}
+                  <DarkEditor
+                    onContentChange={setAnswerHtml}
+                    initialContent={answerHtml}
+                    editorKey={editorKey}
+                  />
+                </div>
+
+                {/* HTML CODE — AI output, editable */}
+                {answerTab === 'code' && (
+                  <div className="ae-code">
+                    <div className="ae-code__head">
+                      <label className="ae-code__use">
+                        <input
+                          type="checkbox"
+                          checked={useCode}
+                          onChange={(e) => setUseCode(e.target.checked)}
+                          disabled={!codeHtml.trim()}
+                        />
+                        <span>Use this HTML as the answer</span>
+                      </label>
+                      <span className="ae-code__meta">
+                        {codeHtml === lastAiHtml && codeHtml ? 'AI generated' : codeHtml ? 'Edited' : 'Empty'} · {codeHtml.length.toLocaleString()} chars
+                      </span>
+                    </div>
+                    {codeHtml || aiLoading ? (
+                      <textarea
+                        className="ae-code__textarea"
+                        value={codeHtml}
+                        onChange={(e) => { setCodeHtml(e.target.value); setUseCode(true); }}
+                        spellCheck={false}
+                        aria-label="Answer HTML code"
+                        disabled={aiLoading}
+                        placeholder="Generating…"
+                      />
+                    ) : (
+                      <div className="ae-code__empty">
+                        <Sparkles size={22} />
+                        <p><strong>No HTML yet.</strong> Write your answer in <em>Normal</em>, then press <strong>AI format</strong> to turn it into clean, structured HTML: headings, lists, tables and key terms.</p>
+                        <button type="button" onClick={() => { setCodeHtml(answerHtml || '<p></p>'); setLastAiHtml(''); }}>
+                          or start from the Normal answer's HTML
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
-
-            <div className="admin-editor-save-area">
-              {saved && (
-                <span className="admin-editor-saved-badge">
-                  <Check size={14} /> Saved
-                </span>
-              )}
-              <button
-                onClick={handleSave}
-                disabled={saving}
-                className="admin-editor-save-btn"
-              >
-                <Save size={14} />
-                {saving ? 'Saving...' : 'Save Question'}
-              </button>
-            </div>
           </div>
 
-          {/* Document Body */}
-          <div className="admin-editor-document">
-            <input
-              type="text"
-              value={question}
-              onChange={(e) => setQuestion(e.target.value)}
-              placeholder="Untitled Question..."
-              className="admin-editor-title-input"
-            />
-            <div className="admin-editor-divider" />
-            <DarkEditor
-              onContentChange={setAnswerHtml}
-              initialContent=""
-              editorKey={editorKey}
-            />
+          {/* ═══ Right Panel: Saved Questions & Upload ═══ */}
+          <div className={`admin-editor-right-panel ${!isRightPanelOpen ? 'collapsed' : ''}`}>
+            <button
+              className="admin-editor-panel-toggle"
+              onClick={() => setIsRightPanelOpen(!isRightPanelOpen)}
+              title={isRightPanelOpen ? 'Collapse question list' : 'Show question list'}
+              aria-label={isRightPanelOpen ? 'Collapse question list' : 'Show question list'}
+            >
+              {isRightPanelOpen ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+            </button>
+
+            <div className="admin-editor-right-content">
+              <div className="admin-editor-questions-header">
+                <h2 className="admin-editor-questions-title">
+                  Questions <span className="neo-chip">{questions.length}</span>
+                </h2>
+                {questions.some(q => q.fromFirebase) && (
+                  <span className="neo-chip neo-chip--ghost"><CloudUpload size={12} /> Synced</span>
+                )}
+              </div>
+
+              {loadingQuestions ? (
+                <Loader text="Loading questions…" />
+              ) : questions.length === 0 ? (
+                <EmptyState
+                  compact
+                  title="No questions yet"
+                  message="Write a question on the left and hit “Push to list”. It shows up here."
+                />
+              ) : (
+                <>
+                  <div className="admin-editor-questions-list">
+                    {questions.map((cs, index) => (
+                      <div
+                        key={cs.id}
+                        className={`admin-editor-question-card ${editingId === cs.id ? 'editing' : ''}`}
+                        style={{ animationDelay: `${Math.min(index, 10) * 40}ms` }}
+                      >
+                        <div className="admin-editor-question-top">
+                          <div className="admin-editor-question-info">
+                            <span className="admin-editor-question-num">Q{index + 1}</span>
+                            <div className="admin-editor-question-textwrap">
+                              <h3 className="admin-editor-question-text" title={cs.question}>{cs.question}</h3>
+                              <span className="admin-editor-question-tag">{cs.questionType}</span>
+                            </div>
+                          </div>
+                          <div className="admin-editor-question-actions">
+                            <button onClick={() => previewSaved(index)} className="admin-editor-icon-btn" title="Preview on mobile" aria-label={`Preview Q${index + 1}`}>
+                              <Eye size={16} />
+                            </button>
+                            <button onClick={() => startEditing(cs)} className="admin-editor-icon-btn" title="Edit" aria-label={`Edit Q${index + 1}`}>
+                              <PencilLine size={16} />
+                            </button>
+                            <button onClick={() => handleDelete(cs.id)} className="admin-editor-icon-btn danger" title="Delete" aria-label={`Delete Q${index + 1}`}>
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
+
+              {/* Upload Button */}
+              {!loadingQuestions && (
+                <div className="admin-editor-upload-area">
+                  <NeoButton
+                    size="big"
+                    variant="success"
+                    fullWidth
+                    icon={CloudUpload}
+                    loading={uploading}
+                    disabled={questions.length === 0}
+                    onClick={handleUploadToFirebase}
+                  >
+                    {uploading ? 'Saving to Firebase…' : 'Save to Firebase'}
+                  </NeoButton>
+                  <p className="admin-editor-upload-hint">
+                    {uploading
+                      ? 'Uploading images and saving questions…'
+                      : `Publishes all ${questions.length} question${questions.length !== 1 ? 's' : ''} to students.`}
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
-
-        {/* ═══ Saved Questions List ═══ */}
-        {loadingQuestions ? (
-          <div className="admin-editor-questions-section">
-            <div className="admin-editor-questions-header">
-              <h2 className="admin-editor-questions-title" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <svg width="18" height="18" className="admin-spin" fill="none" viewBox="0 0 24 24">
-                  <circle opacity="0.25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path opacity="0.75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                </svg>
-                Loading questions from Firebase...
-              </h2>
-            </div>
-          </div>
-        ) : questions.length > 0 && (
-          <div className="admin-editor-questions-section">
-            <div className="admin-editor-questions-header">
-              <h2 className="admin-editor-questions-title">
-                Saved Questions ({questions.length})
-                {questions.some(q => q.fromFirebase) && (
-                  <span style={{
-                    fontSize: '11px',
-                    fontWeight: 600,
-                    color: '#50E3A4',
-                    background: 'rgba(80, 227, 164, 0.1)',
-                    border: '1px solid rgba(80, 227, 164, 0.25)',
-                    padding: '2px 10px',
-                    borderRadius: '20px',
-                    marginLeft: '12px',
-                    verticalAlign: 'middle',
-                  }}>
-                    ☁️ Loaded from Firebase
-                  </span>
-                )}
-              </h2>
-            </div>
-
-            <div className="admin-editor-questions-list">
-              {questions.map((cs, index) => (
-                <div key={cs.id} className="admin-editor-question-card" style={{ animationDelay: `${index * 60}ms` }}>
-                  {editingId === cs.id ? (
-                    /* ── Inline Edit Mode ── */
-                    <div className="admin-editor-edit-mode">
-                      <div className="admin-editor-edit-top">
-                        <span className="admin-editor-edit-label">Editing Question</span>
-                        <div className="admin-editor-edit-types">
-                          {tagOptions.map((t) => (
-                            <button
-                              key={t}
-                              type="button"
-                              onClick={() => setEditType(t)}
-                              className={`admin-editor-type-btn small ${editType === t ? 'active' : ''}`}
-                            >
-                              {t}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                      <input
-                        type="text"
-                        value={editQuestion}
-                        onChange={(e) => setEditQuestion(e.target.value)}
-                        placeholder="Question title"
-                        className="admin-editor-title-input small"
-                      />
-                      <DarkEditor
-                        onContentChange={setEditAnswerHtml}
-                        initialContent={cs.answerHtml}
-                        editorKey={editEditorKey}
-                      />
-                      <div className="admin-editor-edit-actions">
-                        <button onClick={handleUpdateQuestion} className="admin-editor-save-btn">
-                          <Check size={14} /> Save Changes
-                        </button>
-                        <button onClick={cancelEditing} className="admin-editor-cancel-btn">
-                          <X size={14} /> Cancel
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    /* ── View Mode ── */
-                    <>
-                      <div className="admin-editor-question-top">
-                        <div className="admin-editor-question-info">
-                          <div className="admin-editor-question-meta">
-                            <span className="admin-editor-question-num">Q{index + 1}.</span>
-                            <span className="admin-editor-question-type-badge">
-                              {cs.questionType || 'Pakka Chadavali Amma'}
-                            </span>
-                          </div>
-                          <h3 className="admin-editor-question-text">{cs.question}</h3>
-                        </div>
-                        <div className="admin-editor-question-actions">
-                          <button onClick={() => startEditing(cs)} className="admin-editor-icon-btn" title="Edit">
-                            <PencilLine size={16} />
-                          </button>
-                          <button onClick={() => handleDelete(cs.id)} className="admin-editor-icon-btn danger" title="Delete">
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
-                      </div>
-                      <div className="admin-editor-answer-preview" dangerouslySetInnerHTML={{ __html: cs.answerHtml }} />
-                    </>
-                  )}
-                </div>
-              ))}
-            </div>
-
-            {/* Upload Button */}
-            <div className="admin-editor-upload-area">
-              <button
-                className="admin-editor-upload-btn"
-                onClick={handleUploadToFirebase}
-                disabled={uploading}
-              >
-                {uploading ? (
-                  <>
-                    <svg width="18" height="18" className="admin-spin" fill="none" viewBox="0 0 24 24">
-                      <circle opacity="0.25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path opacity="0.75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                    </svg>
-                    Uploading to Firebase...
-                  </>
-                ) : (
-                  <>
-                    <Upload size={18} />
-                    Save Changes to Firebase
-                  </>
-                )}
-              </button>
-              <p className="admin-editor-upload-hint">
-                {uploading
-                  ? 'Saving questions to Firestore...'
-                  : `Finalize your cheatsheet with all ${questions.length} question${questions.length !== 1 ? 's' : ''}`
-                }
-              </p>
-            </div>
-          </div>
-        )}
       </div>
-    </div>
+
+      {preview && (
+        <MobilePreview
+          items={preview.items}
+          startIndex={preview.startIndex}
+          title={preview.title}
+          examLabel={examLabel}
+          subjectName={subjectName}
+          onClose={() => setPreview(null)}
+        />
+      )}
+    </AdminLayout>
   );
 }

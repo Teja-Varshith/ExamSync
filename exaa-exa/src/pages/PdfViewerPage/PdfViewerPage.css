@@ -12,7 +12,7 @@
   width: 100vw;
   height: 100vh;
   height: 100dvh; /* dynamic viewport height for mobile browser bars */
-  background: #0a0a0a;
+  background: var(--bg-primary);
   display: flex;
   flex-direction: column;
   z-index: 999;
@@ -24,37 +24,38 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 8px 12px;
-  background: #111113;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 10px 14px;
+  background: var(--bg-primary);
+  border-bottom: 1px solid var(--divider);
   flex-shrink: 0;
-  min-height: 44px;
+  min-height: 56px;
 }
 
 .pdf-back-btn {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--color-primary, #FFD700);
-  padding: 6px 10px;
-  border-radius: 8px;
-  background: rgba(255, 215, 0, 0.08);
-  border: 1px solid rgba(255, 215, 0, 0.15);
-  transition: background 0.2s;
-  white-space: nowrap;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
   flex-shrink: 0;
+  color: var(--text-primary);
+  background: var(--surface-elevated);
+  border: 1px solid var(--border-light);
+  transition: transform 0.12s;
 }
 
 .pdf-back-btn:active {
-  background: rgba(255, 215, 0, 0.16);
+  transform: translate(2px, 2px);
+}
+
+.pdf-viewer-kind {
+  flex-shrink: 0;
 }
 
 .pdf-viewer-title {
-  font-size: 14px;
-  font-weight: 700;
-  color: #f4f4f5;
+  font-size: 0.9375rem;
+  font-weight: 800;
+  color: var(--text-primary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -94,7 +95,7 @@
     top: 0;
     bottom: 0;
     z-index: 20;
-    background: #111113 !important;
+    background: var(--surface-card) !important;
     box-shadow: 4px 0 20px rgba(0, 0, 0, 0.5);
   }
 
@@ -113,8 +114,8 @@
   align-items: center;
   justify-content: center;
   gap: 12px;
-  background: #0a0a0a;
-  color: #a1a1aa;
+  background: var(--bg-primary);
+  color: var(--text-muted);
   font-size: 14px;
   font-weight: 500;
   z-index: 10;
@@ -126,7 +127,7 @@
 
 .pdf-spinner {
   animation: spin 1s linear infinite;
-  color: var(--color-primary, #FFD700);
+  color: var(--accent);
 }
 
 /* Google Docs Viewer fallback iframe — truly full size */
@@ -143,6 +144,6 @@
   align-items: center;
   justify-content: center;
   padding: 24px;
-  color: #71717a;
+  color: var(--text-muted);
   font-size: 14px;
 }

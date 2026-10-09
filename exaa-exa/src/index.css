@@ -1,5 +1,4 @@
 @import "tailwindcss";
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap');
 
 /* Override Tailwind preflight body padding */
 @layer base {
@@ -16,19 +15,19 @@
   --color-card-foreground: #F4F4F5;
   --color-popover: #202124;
   --color-popover-foreground: #F4F4F5;
-  --color-primary: #FFD700;
+  --color-primary: #FFCB45;
   --color-primary-foreground: #050505;
   --color-secondary: #202124;
   --color-secondary-foreground: #F4F4F5;
   --color-muted: #151618;
   --color-muted-foreground: #A1A1AA;
   --color-accent: #202124;
-  --color-accent-foreground: #FFD700;
+  --color-accent-foreground: #FFCB45;
   --color-destructive: #EF4444;
   --color-destructive-foreground: #F4F4F5;
   --color-border: #27272A;
   --color-input: #27272A;
-  --color-ring: #FFD700;
+  --color-ring: #FFCB45;
 }
 
 /* ============================================
@@ -48,13 +47,13 @@
   --text-muted: #71717A;
   --text-disabled: #52525B;
 
-  --accent: #FFD700;
+  --accent: #FFCB45;
   --accent-light: #FCE150;
   --accent-dark: #B89B00;
 
-  --color-success: #50E3A4;
+  --color-success: #06C270;
   --color-success-light: #B4F5D8;
-  --color-warning: #FFD700;
+  --color-warning: #FFCB45;
   --color-error: #EF4444;
 
   --border: #27272A;
@@ -354,8 +353,7 @@ ul, ol {
    ============================================ */
 
 body.admin-mode {
-  --font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  background: radial-gradient(1200px 600px at 10% -10%, rgba(255, 215, 0, 0.12), transparent 60%),
+  background: radial-gradient(1200px 600px at 10% -10%, rgba(255, 203, 69, 0.12), transparent 60%),
     radial-gradient(800px 500px at 90% 10%, rgba(80, 227, 164, 0.08), transparent 55%),
     var(--color-bg);
 }
@@ -409,9 +407,9 @@ body.admin-mode #root {
   justify-content: space-between;
   padding: var(--space-lg) var(--space-md);
   margin-bottom: var(--space-md);
-  background: linear-gradient(135deg, rgba(255, 215, 0, 0.18), rgba(21, 22, 24, 0.9));
+  background: linear-gradient(135deg, rgba(255, 203, 69, 0.18), rgba(21, 22, 24, 0.9));
   border-radius: var(--radius-lg);
-  border: 1px solid rgba(255, 215, 0, 0.22);
+  border: 1px solid rgba(255, 203, 69, 0.22);
   color: white;
   animation: fadeInUp var(--transition-normal) ease-out;
 }
@@ -503,7 +501,7 @@ body.admin-mode .admin-section {
 }
 
 body.admin-mode .admin-add-section {
-  border: 1px solid rgba(255, 215, 0, 0.3);
+  border: 1px solid rgba(255, 203, 69, 0.3);
   background: rgba(8, 9, 10, 0.9);
 }
 
@@ -655,8 +653,8 @@ body.admin-mode .admin-subjects-list {
   gap: 6px;
   padding: 6px 12px;
   border-radius: 999px;
-  border: 1px solid rgba(255, 215, 0, 0.5);
-  background: rgba(255, 215, 0, 0.08);
+  border: 1px solid rgba(255, 203, 69, 0.5);
+  background: rgba(255, 203, 69, 0.08);
   color: var(--color-primary);
   font-size: 0.75rem;
   font-weight: 600;
@@ -779,7 +777,7 @@ body.admin-mode .admin-subject-item {
 .admin-primary-action {
   width: 100%;
   margin-top: var(--space-md);
-  box-shadow: 0 12px 28px rgba(255, 215, 0, 0.18);
+  box-shadow: 0 12px 28px rgba(255, 203, 69, 0.18);
 }
 
 .btn-primary:hover {
@@ -825,8 +823,8 @@ body.admin-mode .admin-back-btn {
 }
 
 body.admin-mode .admin-syllabus-header {
-  background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(21, 22, 24, 0.9));
-  border: 1px solid rgba(255, 215, 0, 0.22);
+  background: linear-gradient(135deg, rgba(255, 203, 69, 0.2), rgba(21, 22, 24, 0.9));
+  border: 1px solid rgba(255, 203, 69, 0.22);
 }
 
 .admin-syllabus-header h2 {
@@ -909,8 +907,8 @@ body.admin-mode .admin-syllabus-header {
 .admin-metric {
   padding: var(--space-md);
   border-radius: var(--radius-md);
-  background: rgba(255, 215, 0, 0.08);
-  border: 1px solid rgba(255, 215, 0, 0.22);
+  background: rgba(255, 203, 69, 0.08);
+  border: 1px solid rgba(255, 203, 69, 0.22);
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -1041,8 +1039,8 @@ body.admin-mode .admin-syllabus-header {
 }
 
 .admin-mini-btn--primary {
-  border-color: rgba(255, 215, 0, 0.35);
-  background: rgba(255, 215, 0, 0.12);
+  border-color: rgba(255, 203, 69, 0.35);
+  background: rgba(255, 203, 69, 0.12);
   color: var(--color-text);
 }
 
@@ -1104,6 +1102,211 @@ body.admin-mode .admin-syllabus-header {
 }
 
 /* ============================================
+   Tabbed Syllabus Editor — New Layout
+   ============================================ */
+
+/* Header with meta chips */
+.syllabus-header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-lg);
+  flex-wrap: wrap;
+}
+
+.syllabus-header-info {
+  flex: 1;
+}
+
+.syllabus-header-meta {
+  display: flex;
+  gap: var(--space-sm);
+}
+
+.syllabus-meta-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--space-sm) var(--space-md);
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  min-width: 64px;
+}
+
+.syllabus-meta-label {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--color-text-muted);
+}
+
+.syllabus-meta-value {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-primary);
+}
+
+/* Tab Bar */
+.syllabus-tabs {
+  display: flex;
+  gap: var(--space-xs);
+  margin-bottom: var(--space-lg);
+  padding: 6px;
+  background: rgba(21, 22, 24, 0.6);
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.syllabus-tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  padding: 14px var(--space-md);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-muted);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  position: relative;
+}
+
+.syllabus-tab:hover {
+  color: var(--color-text-secondary);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.syllabus-tab--active {
+  color: var(--color-primary);
+  background: rgba(255, 203, 69, 0.1);
+  border-color: rgba(255, 203, 69, 0.25);
+  box-shadow: 0 2px 8px rgba(255, 203, 69, 0.08);
+}
+
+.syllabus-tab--active:hover {
+  color: var(--color-primary);
+  background: rgba(255, 203, 69, 0.12);
+}
+
+/* Tab Content */
+.syllabus-tab-content {
+  min-height: 300px;
+  animation: fadeIn 0.25s ease-out;
+}
+
+.syllabus-panel {
+  animation: fadeInUp 0.3s ease-out;
+}
+
+/* Full-width assets card for Notes/PYQs tabs */
+.syllabus-assets-full {
+  padding: var(--space-lg);
+}
+
+.syllabus-assets-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-md);
+  margin-bottom: var(--space-md);
+}
+
+.syllabus-assets-grid {
+  gap: var(--space-md) !important;
+}
+
+/* Row layout for asset items (Notes/PYQs) */
+.syllabus-asset-row {
+  display: grid !important;
+  grid-template-columns: 36px 1fr auto;
+  align-items: center;
+  gap: var(--space-md) !important;
+  padding: var(--space-md) !important;
+  flex-direction: row !important;
+}
+
+.syllabus-asset-number {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-primary);
+  background: rgba(255, 203, 69, 0.1);
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(255, 203, 69, 0.2);
+  flex-shrink: 0;
+}
+
+.syllabus-asset-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-sm);
+}
+
+/* Empty state */
+.syllabus-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-md);
+  padding: var(--space-2xl);
+  color: var(--color-text-muted);
+  text-align: center;
+  opacity: 0.6;
+}
+
+.syllabus-empty-state p {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+/* Unified Update Button */
+.syllabus-update-btn {
+  position: sticky;
+  bottom: 16px;
+  z-index: 10;
+  margin-top: var(--space-xl);
+}
+
+/* Responsive for tabs */
+@media (max-width: 640px) {
+  .syllabus-tabs {
+    flex-direction: column;
+  }
+
+  .syllabus-header-content {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .syllabus-header-meta {
+    justify-content: space-around;
+  }
+
+  .syllabus-asset-row {
+    grid-template-columns: 1fr !important;
+  }
+
+  .syllabus-asset-number {
+    display: none;
+  }
+
+  .syllabus-asset-fields {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* ============================================
    Admin Cheatsheets Page
    ============================================ */
 
@@ -1111,9 +1314,9 @@ body.admin-mode .admin-syllabus-header {
 .admin-cs-hero {
   padding: var(--space-2xl) var(--space-xl);
   margin-bottom: var(--space-xl);
-  background: linear-gradient(135deg, rgba(255, 215, 0, 0.15), rgba(21, 22, 24, 0.95));
+  background: linear-gradient(135deg, rgba(255, 203, 69, 0.15), rgba(21, 22, 24, 0.95));
   border-radius: var(--radius-lg);
-  border: 1px solid rgba(255, 215, 0, 0.2);
+  border: 1px solid rgba(255, 203, 69, 0.2);
   position: relative;
   overflow: hidden;
   animation: fadeInUp var(--transition-normal) ease-out;
@@ -1126,15 +1329,15 @@ body.admin-mode .admin-syllabus-header {
   right: -10%;
   width: 300px;
   height: 300px;
-  background: radial-gradient(circle, rgba(255, 215, 0, 0.08), transparent 70%);
+  background: radial-gradient(circle, rgba(255, 203, 69, 0.08), transparent 70%);
   pointer-events: none;
 }
 
 .admin-cs-hero-badge {
   display: inline-block;
   padding: 5px 14px;
-  background: rgba(255, 215, 0, 0.15);
-  border: 1px solid rgba(255, 215, 0, 0.35);
+  background: rgba(255, 203, 69, 0.15);
+  border: 1px solid rgba(255, 203, 69, 0.35);
   border-radius: var(--radius-full);
   font-size: 0.7rem;
   font-weight: var(--font-weight-bold);
@@ -1170,7 +1373,7 @@ body.admin-mode .admin-syllabus-header {
   font-weight: var(--font-weight-semibold);
   color: var(--text-muted);
   letter-spacing: 0.06em;
-  font-family: 'Space Grotesk', monospace;
+  font-family: var(--font-mono);
 }
 
 /* Section */
@@ -1243,11 +1446,11 @@ body.admin-mode .admin-syllabus-header {
 .admin-cs-card:hover {
   transform: translateY(-4px);
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
-  border-color: rgba(255, 215, 0, 0.25);
+  border-color: rgba(255, 203, 69, 0.25);
 }
 
 .admin-cs-card:hover::before {
-  background: linear-gradient(90deg, transparent, rgba(255, 215, 0, 0.5), transparent);
+  background: linear-gradient(90deg, transparent, rgba(255, 203, 69, 0.5), transparent);
 }
 
 .admin-cs-card--completed {
@@ -1350,8 +1553,8 @@ body.admin-mode .admin-syllabus-header {
 .admin-cs-stat {
   padding: var(--space-lg) var(--space-md);
   border-radius: var(--radius-md);
-  background: rgba(255, 215, 0, 0.05);
-  border: 1px solid rgba(255, 215, 0, 0.15);
+  background: rgba(255, 203, 69, 0.05);
+  border: 1px solid rgba(255, 203, 69, 0.15);
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -1377,6 +1580,93 @@ body.admin-mode .admin-syllabus-header {
 
 .admin-editor-shell {
   max-width: 100% !important;
+  padding: 0 var(--space-xl) !important;
+}
+
+body.admin-mode:has(.admin-editor-page) #root {
+  max-width: 100% !important;
+  padding-left: var(--space-lg);
+  padding-right: var(--space-lg);
+}
+
+.admin-editor-split-layout {
+  display: flex;
+  gap: var(--space-xl);
+  position: relative;
+  min-height: 70vh;
+  align-items: flex-start;
+}
+
+.admin-editor-left-panel {
+  flex: 1;
+  transition: all var(--transition-normal);
+  min-width: 0;
+}
+
+.admin-editor-right-panel {
+  width: 400px;
+  flex-shrink: 0;
+  position: sticky;
+  top: 20px;
+  transition: all var(--transition-normal);
+  background: rgba(12, 12, 14, 0.5);
+  border-radius: var(--radius-xl);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 120px);
+}
+
+.admin-editor-right-panel.collapsed {
+  width: 0;
+  border-color: transparent;
+  background: transparent;
+}
+
+.admin-editor-right-content {
+  padding: var(--space-lg);
+  overflow-y: auto;
+  opacity: 1;
+  transition: opacity var(--transition-normal);
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.admin-editor-right-panel.collapsed .admin-editor-right-content {
+  opacity: 0;
+  pointer-events: none;
+  overflow: hidden;
+  padding: 0;
+}
+
+.admin-editor-panel-toggle {
+  position: absolute;
+  left: -16px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 64px;
+  background: var(--color-surface);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px 0 0 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  color: var(--text-secondary);
+  transition: all var(--transition-fast);
+}
+
+.admin-editor-panel-toggle:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+}
+
+.admin-editor-right-panel.collapsed .admin-editor-panel-toggle {
+  left: -32px;
+  border-radius: 8px;
 }
 
 /* Breadcrumb */
@@ -1456,7 +1746,7 @@ body.admin-mode .admin-syllabus-header {
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-semibold);
   color: var(--text-muted);
-  font-family: 'Space Grotesk', monospace;
+  font-family: var(--font-mono);
 }
 
 .admin-editor-back-btn {
@@ -1549,7 +1839,7 @@ body.admin-mode .admin-syllabus-header {
 .admin-editor-type-btn.active {
   background: var(--accent);
   color: #000;
-  box-shadow: 0 2px 8px rgba(255, 215, 0, 0.25);
+  box-shadow: 0 2px 8px rgba(255, 203, 69, 0.25);
 }
 
 .admin-editor-type-btn.small {
@@ -1626,15 +1916,15 @@ body.admin-mode .admin-syllabus-header {
   font-weight: var(--font-weight-bold);
   font-family: inherit;
   color: var(--accent);
-  background: rgba(255, 215, 0, 0.08);
-  border: 1px solid rgba(255, 215, 0, 0.25);
+  background: rgba(255, 203, 69, 0.08);
+  border: 1px solid rgba(255, 203, 69, 0.25);
   border-radius: var(--radius-full);
   cursor: pointer;
   transition: all var(--transition-fast);
 }
 
 .admin-editor-tag-add-btn:hover:not(:disabled) {
-  background: rgba(255, 215, 0, 0.16);
+  background: rgba(255, 203, 69, 0.16);
 }
 
 .admin-editor-tag-add-btn:disabled {
@@ -1672,13 +1962,13 @@ body.admin-mode .admin-syllabus-header {
   border: none;
   cursor: pointer;
   transition: all var(--transition-fast);
-  box-shadow: 0 4px 14px rgba(255, 215, 0, 0.2);
+  box-shadow: 0 4px 14px rgba(255, 203, 69, 0.2);
   font-family: inherit;
 }
 
 .admin-editor-save-btn:hover {
   transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(255, 215, 0, 0.3);
+  box-shadow: 0 6px 20px rgba(255, 203, 69, 0.3);
 }
 
 .admin-editor-save-btn:disabled {
@@ -1717,7 +2007,7 @@ body.admin-mode .admin-syllabus-header {
 .admin-editor-title-input {
   width: 100%;
   font-size: 28px;
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: var(--font-family);
   font-weight: 800;
   color: var(--text-primary);
   border: none;
@@ -1785,7 +2075,7 @@ body.admin-mode .admin-syllabus-header {
 }
 
 .admin-editor-toolbar-btn.active {
-  background: rgba(255, 215, 0, 0.15);
+  background: rgba(255, 203, 69, 0.15);
   color: var(--accent);
 }
 
@@ -1814,8 +2104,8 @@ body.admin-mode .admin-syllabus-header {
 }
 
 .admin-editor-content:focus-within {
-  border-color: rgba(255, 215, 0, 0.3);
-  box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.05);
+  border-color: rgba(255, 203, 69, 0.3);
+  box-shadow: 0 0 0 3px rgba(255, 203, 69, 0.05);
 }
 
 /* TipTap Editor Styles inside dark mode */
@@ -1870,7 +2160,7 @@ body.admin-mode .admin-syllabus-header {
   background: rgba(255, 255, 255, 0.06);
   padding: 2px 6px;
   border-radius: 4px;
-  font-family: 'Space Grotesk', monospace;
+  font-family: var(--font-mono);
   font-size: 0.9em;
   color: var(--accent);
 }
@@ -1915,8 +2205,8 @@ body.admin-mode .admin-syllabus-header {
   align-items: center;
   gap: 8px;
   padding: 8px var(--space-md);
-  background: rgba(255, 215, 0, 0.08);
-  border-top: 1px solid rgba(255, 215, 0, 0.15);
+  background: rgba(255, 203, 69, 0.08);
+  border-top: 1px solid rgba(255, 203, 69, 0.15);
   font-size: var(--font-size-xs);
   color: var(--accent);
   font-weight: var(--font-weight-semibold);
@@ -1964,35 +2254,41 @@ body.admin-mode .admin-syllabus-header {
   background: rgba(21, 22, 24, 0.85);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: var(--radius-lg);
-  padding: var(--space-xl);
+  padding: 12px 16px;
   animation: fadeInUp var(--transition-normal) ease-out;
   animation-fill-mode: both;
-  transition: border-color var(--transition-fast);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
 }
 
 .admin-editor-question-card:hover {
   border-color: rgba(255, 255, 255, 0.14);
 }
 
+.admin-editor-question-card.editing {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+  background: rgba(255, 203, 69, 0.02);
+}
+
 .admin-editor-question-top {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: var(--space-md);
-  margin-bottom: var(--space-md);
-  padding-bottom: var(--space-md);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .admin-editor-question-info {
   flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
 }
 
 .admin-editor-question-meta {
   display: flex;
   align-items: center;
-  gap: var(--space-sm);
-  margin-bottom: 6px;
+  flex-shrink: 0;
 }
 
 .admin-editor-question-num {
@@ -2009,22 +2305,26 @@ body.admin-mode .admin-syllabus-header {
   font-weight: var(--font-weight-bold);
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  background: rgba(255, 215, 0, 0.1);
+  background: rgba(255, 203, 69, 0.1);
   color: var(--accent);
-  border: 1px solid rgba(255, 215, 0, 0.25);
+  border: 1px solid rgba(255, 203, 69, 0.25);
 }
 
 .admin-editor-question-text {
-  font-size: var(--font-size-md);
+  font-size: var(--font-size-sm);
   font-weight: var(--font-weight-semibold);
   color: var(--text-primary);
-  line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin: 0;
 }
 
 .admin-editor-question-actions {
   display: flex;
   align-items: center;
   gap: 4px;
+  flex-shrink: 0;
 }
 
 .admin-editor-icon-btn {
@@ -2232,13 +2532,13 @@ body.admin-mode .admin-syllabus-header {
 
 /* Selection ring when image is clicked */
 .resizable-image-container.selected {
-  outline: 2px solid var(--accent, #FFD700);
+  outline: 2px solid var(--accent, #FFCB45);
   outline-offset: 3px;
   border-radius: var(--radius-md);
 }
 
 .resizable-image-container.resizing {
-  outline-color: var(--color-success, #50E3A4);
+  outline-color: var(--color-success, #06C270);
   cursor: nwse-resize;
 }
 
@@ -2255,7 +2555,7 @@ body.admin-mode .admin-syllabus-header {
   right: -4px;
   width: 18px;
   height: 18px;
-  background: var(--accent, #FFD700);
+  background: var(--accent, #FFCB45);
   border: 2px solid var(--bg-primary, #050505);
   border-radius: 4px;
   cursor: nwse-resize;
@@ -2277,7 +2577,7 @@ body.admin-mode .admin-syllabus-header {
 
 .resize-handle:hover {
   transform: scale(1.2);
-  box-shadow: 0 4px 12px rgba(255, 215, 0, 0.4);
+  box-shadow: 0 4px 12px rgba(255, 203, 69, 0.4);
 }
 
 .resize-handle:active {
@@ -2326,7 +2626,7 @@ body.admin-mode .admin-syllabus-header {
   padding: 0 8px;
   font-size: 11px;
   font-weight: 700;
-  font-family: 'Space Grotesk', 'Inter', sans-serif;
+  font-family: var(--font-family);
   border-radius: var(--radius-full);
   border: none;
   background: transparent;
@@ -2342,9 +2642,9 @@ body.admin-mode .admin-syllabus-header {
 }
 
 .resize-toolbar-btn.active {
-  background: var(--accent, #FFD700);
+  background: var(--accent, #FFCB45);
   color: #000;
-  box-shadow: 0 2px 6px rgba(255, 215, 0, 0.25);
+  box-shadow: 0 2px 6px rgba(255, 203, 69, 0.25);
 }
 
 .resize-toolbar-btn svg {
@@ -2358,7 +2658,7 @@ body.admin-mode .admin-syllabus-header {
   position: absolute;
   width: 10px;
   height: 10px;
-  background: var(--accent, #FFD700);
+  background: var(--accent, #FFCB45);
   border: 2px solid var(--bg-primary, #050505);
   border-radius: 3px;
   z-index: 10;
@@ -2388,7 +2688,7 @@ body.admin-mode .admin-syllabus-header {
   left: calc(-1 * (var(--_cw, 300px) - 14px));
   width: 10px;
   height: 10px;
-  background: var(--accent, #FFD700);
+  background: var(--accent, #FFCB45);
   border: 2px solid var(--bg-primary, #050505);
   border-radius: 3px;
   pointer-events: none;

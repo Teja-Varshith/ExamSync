@@ -1,17 +1,27 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { ChevronLeft, Save, Loader, Book, Plus, Trash2 } from 'lucide-react';
+import { Save, Plus, Minus, Trash2, FileText, ClipboardList, BookOpen, Link2 } from 'lucide-react';
 import api from '../services/api';
+import AdminLayout from '../components/layout/AdminLayout';
+import NeoButton from '../components/ui/NeoButton';
+import Segmented from '../components/ui/Segmented';
+import EmptyState from '../components/ui/EmptyState';
+import Loader from '../components/Loader/Loader';
+import { useConfirm } from '../components/ui/useConfirm';
+import toast from '../components/ui/toast';
 
 export default function AddSyllabus() {
   const navigate = useNavigate();
   const location = useLocation();
   const subjectData = location.state || {}; // Using state passed from AdminDashboard
   const isEditMode = Boolean(subjectData.isEdit);
+  const confirm = useConfirm();
+
+  // Active tab state: 'syllabus' | 'notes' | 'pyqs'
+  const [activeTab, setActiveTab] = useState('syllabus');
 
   const [noOfUnits, setNoOfUnits] = useState(subjectData.noOfUnits || 1);
   const [saving, setSaving] = useState(false);
-  const [assetsSaving, setAssetsSaving] = useState(false);
   const [loadingExamData, setLoadingExamData] = useState(isEditMode);
 
   // Store unit details: { 1: { name: '', topics: '' }, 2: ... }
@@ -60,11 +70,6 @@ export default function AddSyllabus() {
   }, [isEditMode, subjectData.courseCode]);
 
   useEffect(() => {
-    document.body.classList.add('admin-mode');
-    return () => document.body.classList.remove('admin-mode');
-  }, []);
-
-  useEffect(() => {
     setNoteItems((prev) => (prev.length ? prev : [{ title: '', link: '' }]));
     setPyqItems((prev) => (prev.length ? prev : [{ tag: '', link: '' }]));
   }, []);
@@ -87,6 +92,27 @@ export default function AddSyllabus() {
       return updated;
     });
   }, [noOfUnits]);
+
+  const unitCount = Object.keys(unitDetails).length;
+
+  // Lowering the unit count drops units — confirm first if any of them has content
+  const changeUnitCount = async (next) => {
+    const target = Math.max(1, Math.min(10, next));
+    if (target < unitCount) {
+      const dropped = Object.entries(unitDetails)
+        .filter(([k, u]) => Number(k) > target && (u?.name || u?.topics));
+      if (dropped.length) {
+        const ok = await confirm({
+          title: `Remove ${unitCount - target} unit${unitCount - target !== 1 ? 's' : ''}?`,
+          message: `Unit ${dropped.map(([k]) => k).join(', ')} already ${dropped.length > 1 ? 'have' : 'has'} content that will be discarded.`,
+          confirmLabel: 'Remove',
+          tone: 'danger',
+        });
+        if (!ok) return;
+      }
+    }
+    setNoOfUnits(target);
+  };
 
   const handleUnitChange = (unitNum, field, value) => {
     setUnitDetails(prev => ({
@@ -126,7 +152,8 @@ export default function AddSyllabus() {
     setPyqItems(prev => prev.filter((_, i) => i !== index));
   };
 
-  const handleSave = async () => {
+  // Single unified save handler for everything
+  const handleSaveAll = async () => {
     setSaving(true);
     try {
       const cleanedNotes = noteItems
@@ -172,273 +199,194 @@ export default function AddSyllabus() {
         pyqs: pyqsMap,
       });
 
-      alert(`✅ Successfully ${isEditMode ? 'updated' : 'saved'} "${subjectData.subjectName}" with ${metaData.noOfUnits} units!`);
+      toast.success(`${subjectData.subjectName} ${isEditMode ? 'updated' : 'saved'}`, 'Syllabus, notes and PYQs are live for students.');
       navigate('/admin');
     } catch (err) {
       console.error('Failed to save subject:', err);
-      alert(`❌ Failed to ${isEditMode ? 'update' : 'save'} subject. Please try again.`);
+      toast.error(`Couldn't ${isEditMode ? 'update' : 'save'} the subject`, 'Check your connection and try again.');
     } finally {
       setSaving(false);
     }
   };
 
-  const handleSaveAssets = async () => {
-    if (!subjectData.courseCode) {
-      alert('Please save the subject syllabus first.');
-      return;
-    }
+  const filledNotes = noteItems.filter(n => n.title && n.link).length;
+  const filledPyqs = pyqItems.filter(p => p.tag && p.link).length;
 
-    setAssetsSaving(true);
-    try {
-      const cleanedNotes = noteItems
-        .map((item) => ({
-          title: item.title.trim(),
-          link: item.link.trim()
-        }))
-        .filter((item) => item.title && item.link);
+  const tabs = [
+    { value: 'syllabus', label: 'Syllabus', icon: BookOpen, badge: unitCount },
+    { value: 'notes', label: 'Notes / PDFs', icon: FileText, badge: filledNotes },
+    { value: 'pyqs', label: 'PYQs', icon: ClipboardList, badge: filledPyqs },
+  ];
 
-      const cleanedPyqs = pyqItems
-        .map((item) => ({
-          tag: item.tag.trim(),
-          link: item.link.trim()
-        }))
-        .filter((item) => item.tag && item.link);
-
-      const notesMap = cleanedNotes.reduce((acc, item, index) => {
-        acc[index + 1] = item;
-        return acc;
-      }, {});
-
-      const pyqsMap = cleanedPyqs.reduce((acc, item, index) => {
-        acc[index + 1] = item;
-        return acc;
-      }, {});
-
-      await api.updateExamData(subjectData.courseCode, {
-        notes: notesMap,
-        pyqs: pyqsMap,
-      });
-      alert('✅ Notes and PYQs saved to Firestore!');
-    } catch (err) {
-      console.error('Failed to save assets:', err);
-      alert('❌ Failed to save notes and PYQs. Please try again.');
-    } finally {
-      setAssetsSaving(false);
-    }
-  };
-
-  return (
-    <div className="admin-page">
-      <div className="admin-shell">
-        <div className="admin-syllabus-grid">
-          <div className="admin-syllabus-main">
-            {/* Back Header */}
-            <button
-              className="admin-back-btn"
-              onClick={() => navigate('/admin')}
-            >
-              <ChevronLeft size={20} /> Back to Dashboard
-            </button>
-
-            {/* Subject Info Card */}
-            <div className="admin-syllabus-header">
-              <h2>{subjectData.subjectName || 'New Subject'}</h2>
-              <p>{subjectData.courseCode} &middot; {subjectData.courseType}</p>
-              <p className="admin-syllabus-subtext">
-                Semester {subjectData.semester}
-              </p>
-            </div>
-
-            {/* No. of Units */}
-            <div className="admin-section">
-              <div className="admin-units-row">
-                <label className="admin-label admin-units-label">
-                  <Book size={18} /> Number of Units
-                </label>
+  const renderAssetRows = (items, kind) => {
+    const isNotes = kind === 'notes';
+    const onChange = isNotes ? handleNoteChange : handlePyqChange;
+    const onRemove = isNotes ? removeNoteRow : removePyqRow;
+    const labelKey = isNotes ? 'title' : 'tag';
+    return (
+      <div className="ad-assets">
+        {items.map((item, index) => (
+          <div key={`${kind}-${index}`} className="ad-asset">
+            <span className="ad-asset__num">{index + 1}</span>
+            <div className="ad-asset__fields">
+              <input
+                className="neo-input"
+                placeholder={isNotes ? 'Title, e.g. Unit 1 – Lexical Analysis' : 'Tag, e.g. Mid-1 2024'}
+                value={item[labelKey]}
+                onChange={(e) => onChange(index, labelKey, e.target.value)}
+                aria-label={isNotes ? 'PDF title' : 'PYQ tag'}
+              />
+              <div className="neo-input-wrap">
+                <Link2 size={16} />
                 <input
-                  type="number"
-                  min="1"
-                  max="10"
-                  className="admin-input admin-units-input"
-                  value={noOfUnits}
-                  onChange={(e) => setNoOfUnits(e.target.value)}
+                  className="neo-input"
+                  placeholder="https://… link to the PDF"
+                  value={item.link}
+                  onChange={(e) => onChange(index, 'link', e.target.value)}
+                  aria-label="Link"
+                  aria-invalid={Boolean(item.link) && !/^https?:\/\//i.test(item.link.trim())}
                 />
               </div>
             </div>
+            <button
+              type="button"
+              className="neo-icon-btn neo-icon-btn--danger"
+              onClick={() => onRemove(index)}
+              aria-label={isNotes ? 'Remove PDF' : 'Remove PYQ'}
+            >
+              <Trash2 size={16} />
+            </button>
+          </div>
+        ))}
+      </div>
+    );
+  };
 
-            {/* Dynamic Unit Sections */}
-            <div className="admin-units-list">
+  if (loadingExamData) {
+    return (
+      <AdminLayout crumbs={[{ label: 'Dashboard', to: '/admin' }, { label: subjectData.subjectName || 'Subject' }]}>
+        <Loader text="Loading syllabus, notes and PYQs…" />
+      </AdminLayout>
+    );
+  }
+
+  return (
+    <AdminLayout
+      crumbs={[
+        { label: 'Dashboard', to: '/admin' },
+        { label: isEditMode ? 'Edit subject' : 'New subject' },
+      ]}
+      eyebrow={`Semester ${subjectData.semester} · ${subjectData.courseType || ''}`}
+      title={subjectData.subjectName || 'New Subject'}
+      subtitle={<span className="ad-code">{subjectData.courseCode}</span>}
+    >
+      <div className="ad-tabs">
+        <Segmented options={tabs} value={activeTab} onChange={setActiveTab} ariaLabel="Subject content" />
+      </div>
+
+      <div className="ad-tabpanel" key={activeTab}>
+        {/* SYLLABUS TAB */}
+        {activeTab === 'syllabus' && (
+          <>
+            <section className="ad-panel ad-units-bar">
+              <div>
+                <h2 className="ad-panel__title">Units</h2>
+                <p className="ad-panel__hint">Between 1 and 10. Students see topics in this order.</p>
+              </div>
+              <div className="ad-stepper" role="group" aria-label="Number of units">
+                <button type="button" className="neo-icon-btn" onClick={() => changeUnitCount(unitCount - 1)} disabled={unitCount <= 1} aria-label="Remove a unit">
+                  <Minus size={16} />
+                </button>
+                <span className="ad-stepper__value">{unitCount}</span>
+                <button type="button" className="neo-icon-btn" onClick={() => changeUnitCount(unitCount + 1)} disabled={unitCount >= 10} aria-label="Add a unit">
+                  <Plus size={16} />
+                </button>
+              </div>
+            </section>
+
+            <div className="ad-units">
               {Object.keys(unitDetails).map((key) => {
                 const unitNum = Number(key);
                 const unitData = unitDetails[unitNum];
+                const topicCount = String(unitData.topics || '').split(',').map(t => t.trim()).filter(Boolean).length;
 
                 return (
-                  <div key={unitNum} className="admin-section admin-unit-card">
-                    <h3 className="admin-unit-title">Unit {unitNum}</h3>
-
-                    <div className="admin-form-group">
-                      <label className="admin-label">Unit Name</label>
+                  <section key={unitNum} className="ad-panel ad-unit">
+                    <div className="ad-unit__head">
+                      <span className="ad-unit__num">{String(unitNum).padStart(2, '0')}</span>
                       <input
-                        className="admin-input"
-                        placeholder="e.g. Lexical Analysis"
+                        className="neo-input ad-unit__name"
+                        placeholder={`Unit ${unitNum} name, e.g. Lexical Analysis`}
                         value={unitData.name}
                         onChange={(e) => handleUnitChange(unitNum, 'name', e.target.value)}
+                        aria-label={`Unit ${unitNum} name`}
                       />
                     </div>
-
-                    <div className="admin-form-group admin-topics-group">
-                      <label className="admin-label">Topics (comma separated)</label>
+                    <div className="neo-field">
+                      <label className="neo-label" htmlFor={`topics-${unitNum}`}>
+                        Topics <small>— separate with commas · {topicCount} topic{topicCount !== 1 ? 's' : ''}</small>
+                      </label>
                       <textarea
-                        className="admin-textarea admin-topics-textarea"
-                        placeholder="e.g. finite automata, regular expressions, role of lexical analyzer..."
+                        id={`topics-${unitNum}`}
+                        className="neo-input ad-textarea"
+                        placeholder="finite automata, regular expressions, role of lexical analyzer…"
                         value={unitData.topics}
                         onChange={(e) => handleUnitChange(unitNum, 'topics', e.target.value)}
                       />
                     </div>
-                  </div>
+                  </section>
                 );
               })}
             </div>
+          </>
+        )}
 
-            <button
-              className="btn btn-primary btn-lg admin-primary-action admin-sticky-action"
-              onClick={handleSave}
-              disabled={saving}
-            >
-              {saving ? (
-                <>
-                  <Loader size={18} className="animate-spin" style={{ animation: 'spin 1s linear infinite' }} />
-                  {isEditMode ? 'Updating' : 'Saving'} to Firestore...
-                </>
-              ) : (
-                <>
-                  <Save size={18} /> {isEditMode ? 'Update' : 'Save'} Subject Syllabus
-                </>
-              )}
-            </button>
-          </div>
-
-          <aside className="admin-syllabus-aside">
-            <div className="admin-section admin-summary-card">
-              <h3 className="admin-section-title">
-                <Book size={18} /> Syllabus Overview
-              </h3>
-              <div className="admin-summary-item">
-                <span className="admin-summary-label">Subject</span>
-                <span className="admin-summary-value">{subjectData.subjectName || 'New Subject'}</span>
+        {/* NOTES / PDFs TAB */}
+        {activeTab === 'notes' && (
+          <section className="ad-panel">
+            <div className="ad-panel__head">
+              <div>
+                <h2 className="ad-panel__title"><FileText size={18} /> Notes (PDFs)</h2>
+                <p className="ad-panel__hint">Rows missing a title or link are skipped when you save.</p>
               </div>
-              <div className="admin-summary-item">
-                <span className="admin-summary-label">Course Code</span>
-                <span className="admin-summary-value">{subjectData.courseCode || 'N/A'}</span>
-              </div>
-              <div className="admin-summary-item">
-                <span className="admin-summary-label">Type</span>
-                <span className="admin-summary-value">{subjectData.courseType || 'N/A'}</span>
-              </div>
-              <div className="admin-summary-item">
-                <span className="admin-summary-label">Units</span>
-                <span className="admin-summary-value">{Object.keys(unitDetails).length}</span>
-              </div>
-              <div className="admin-summary-item">
-                <span className="admin-summary-label">Semester</span>
-                <span className="admin-summary-value">Semester {subjectData.semester || 'N/A'}</span>
-              </div>
+              <NeoButton size="small" variant="secondary" icon={Plus} onClick={addNoteRow}>Add PDF</NeoButton>
             </div>
+            {noteItems.length === 0
+              ? <EmptyState compact title="No notes yet" message="Click “Add PDF” to attach your first note." />
+              : renderAssetRows(noteItems, 'notes')}
+          </section>
+        )}
 
-            <div className="admin-section admin-assets-card">
-              <h3 className="admin-section-title">Notes (PDFs)</h3>
-              <p className="admin-help-text">Add PDF title + link. Click save to store in Firestore.</p>
-              <div className="admin-assets-list">
-                {noteItems.map((item, index) => (
-                  <div key={`note-${index}`} className="admin-asset-row">
-                    <input
-                      className="admin-input admin-asset-input"
-                      placeholder={`PDF title ${index + 1}`}
-                      value={item.title}
-                      onChange={(e) => handleNoteChange(index, 'title', e.target.value)}
-                    />
-                    <div className="admin-asset-row-actions">
-                      <input
-                        className="admin-input admin-asset-input"
-                        placeholder="PDF link"
-                        value={item.link}
-                        onChange={(e) => handleNoteChange(index, 'link', e.target.value)}
-                      />
-                      <button
-                        type="button"
-                        className="admin-icon-btn"
-                        onClick={() => removeNoteRow(index)}
-                        aria-label="Remove PDF"
-                      >
-                        <Trash2 size={14} />
-                      </button>
-                    </div>
-                  </div>
-                ))}
+        {/* PYQs TAB */}
+        {activeTab === 'pyqs' && (
+          <section className="ad-panel">
+            <div className="ad-panel__head">
+              <div>
+                <h2 className="ad-panel__title"><ClipboardList size={18} /> Previous year questions</h2>
+                <p className="ad-panel__hint">Rows missing a tag or link are skipped when you save.</p>
               </div>
-              <div className="admin-asset-actions">
-                <button type="button" className="admin-mini-btn" onClick={addNoteRow}>
-                  <Plus size={14} /> Add PDF
-                </button>
-                <button
-                  type="button"
-                  className="admin-mini-btn admin-mini-btn--primary"
-                  onClick={handleSaveAssets}
-                  disabled={!isEditMode || assetsSaving}
-                >
-                  {assetsSaving ? 'Saving...' : 'Save Notes/PYQs'}
-                </button>
-              </div>
+              <NeoButton size="small" variant="secondary" icon={Plus} onClick={addPyqRow}>Add PYQ</NeoButton>
             </div>
+            {pyqItems.length === 0
+              ? <EmptyState compact title="No PYQs yet" message="Click “Add PYQ” to attach a question paper." />
+              : renderAssetRows(pyqItems, 'pyqs')}
+          </section>
+        )}
+      </div>
 
-            <div className="admin-section admin-assets-card">
-              <h3 className="admin-section-title">PYQs</h3>
-              <p className="admin-help-text">Add tag name + link for PYQs.</p>
-              <div className="admin-assets-list">
-                {pyqItems.map((item, index) => (
-                  <div key={`pyq-${index}`} className="admin-asset-row">
-                    <input
-                      className="admin-input admin-asset-input"
-                      placeholder={`Tag name ${index + 1}`}
-                      value={item.tag}
-                      onChange={(e) => handlePyqChange(index, 'tag', e.target.value)}
-                    />
-                    <div className="admin-asset-row-actions">
-                      <input
-                        className="admin-input admin-asset-input"
-                        placeholder="PYQ link"
-                        value={item.link}
-                        onChange={(e) => handlePyqChange(index, 'link', e.target.value)}
-                      />
-                      <button
-                        type="button"
-                        className="admin-icon-btn"
-                        onClick={() => removePyqRow(index)}
-                        aria-label="Remove PYQ"
-                      >
-                        <Trash2 size={14} />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <div className="admin-asset-actions">
-                <button type="button" className="admin-mini-btn" onClick={addPyqRow}>
-                  <Plus size={14} /> Add PYQ
-                </button>
-                <button
-                  type="button"
-                  className="admin-mini-btn admin-mini-btn--primary"
-                  onClick={handleSaveAssets}
-                  disabled={!isEditMode || assetsSaving}
-                >
-                  {assetsSaving ? 'Saving...' : 'Save Notes/PYQs'}
-                </button>
-              </div>
-            </div>
-          </aside>
+      {/* Sticky save bar */}
+      <div className="ad-savebar">
+        <span className="ad-savebar__text">
+          {unitCount} unit{unitCount !== 1 ? 's' : ''} · {filledNotes} note{filledNotes !== 1 ? 's' : ''} · {filledPyqs} PYQ{filledPyqs !== 1 ? 's' : ''}
+          <small>Everything saves together</small>
+        </span>
+        <div className="ad-savebar__actions">
+          <NeoButton variant="secondary" kind="flat" onClick={() => navigate('/admin')} disabled={saving}>Cancel</NeoButton>
+          <NeoButton size="big" icon={Save} loading={saving} onClick={handleSaveAll}>
+            {saving ? (isEditMode ? 'Updating…' : 'Saving…') : (isEditMode ? 'Update subject' : 'Save subject')}
+          </NeoButton>
         </div>
       </div>
-    </div>
+    </AdminLayout>
   );
 }

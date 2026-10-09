@@ -1,0 +1,442 @@
+/* ============================================
+   ExamSync × NeoPOP — global layer
+   Loaded after index.css so these tokens win.
+   ============================================ */
+
+:root {
+  /* Surfaces (NeoPOP popBlack scale) */
+  --bg-primary: #0D0D0D;
+  --bg-secondary: #121212;
+  --surface-card: #161616;
+  --surface-elevated: #1F1F1F;
+
+  --text-primary: #FFFFFF;
+  --text-secondary: #BDBDBD;
+  --text-muted: #8A8A8A;
+  --text-disabled: #5C5C5C;
+
+  /* Accent: NeoPOP "mannna" */
+  --accent: #FFCB45;
+  --accent-light: #FFDB7D;
+  --accent-dark: #B38E30;
+  --accent-edge-r: #B38E30;
+  --accent-edge-b: #806623;
+  --accent-soft: rgba(255, 203, 69, 0.12);
+
+  /* Secondary pops */
+  --premium: #6A35FF;
+  --premium-edge-r: #4A25B3;
+  --premium-edge-b: #351A80;
+  --premium-soft: rgba(106, 53, 255, 0.14);
+  --lime: #E5FE40;
+  --pink: #FF426F;
+
+  --color-success: #06C270;
+  --color-success-light: #83E0B8;
+  --color-warning: #F08D32;
+  --color-error: #EE4D37;
+
+  --border: #2A2A2A;
+  --border-light: #3D3D3D;
+  --divider: #222222;
+
+  /* NeoPOP is sharp-cornered */
+  --radius-xs: 0px;
+  --radius-sm: 2px;
+  --radius-md: 2px;
+  --radius-lg: 4px;
+  --radius-xl: 4px;
+  --radius-2xl: 6px;
+
+  --plunk: 3px;
+
+  --font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-display: 'Fraunces', Georgia, 'Times New Roman', serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+}
+
+body {
+  background-color: var(--bg-primary);
+}
+
+/* Mobile column for the student app */
+#root {
+  background-color: var(--bg-primary);
+  box-shadow: 0 0 0 1px var(--divider);
+}
+
+/* NeoPOP Typography hooks (lib expects Gilroy / Cirka — mapped to open fonts) */
+.font.sans-serif {
+  font-family: var(--font-family);
+}
+
+.font.serif {
+  font-family: var(--font-display);
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--bg-primary);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ─── Plunk: CSS twin of NeoPOP ElevatedCard edges ───
+   Usage: <div class="neo-plunk" style="--edge-r:..;--edge-b:..">  */
+.neo-plunk {
+  --edge-r: #3D3D3D;
+  --edge-b: #2A2A2A;
+  position: relative;
+  margin-right: var(--plunk);
+  margin-bottom: var(--plunk);
+}
+
+.neo-plunk::before,
+.neo-plunk::after {
+  content: '';
+  position: absolute;
+  transform-origin: 0 0;
+  pointer-events: none;
+  transition: transform 0.12s ease-in-out, opacity 0.12s ease-in-out;
+}
+
+.neo-plunk::before {
+  top: 0;
+  right: calc(var(--plunk) * -1);
+  width: var(--plunk);
+  height: 100%;
+  background: var(--edge-r);
+  transform: skewY(45deg);
+}
+
+.neo-plunk::after {
+  left: 0;
+  bottom: calc(var(--plunk) * -1);
+  width: 100%;
+  height: var(--plunk);
+  background: var(--edge-b);
+  transform: skewX(45deg);
+}
+
+/* Pressable plunk: face sinks into its edges */
+.neo-plunk--press {
+  cursor: pointer;
+  transition: transform 0.12s ease-in-out;
+}
+
+.neo-plunk--press:active {
+  transform: translate(var(--plunk), var(--plunk));
+}
+
+.neo-plunk--press:active::before,
+.neo-plunk--press:active::after {
+  opacity: 0;
+}
+
+@media (hover: hover) {
+  .neo-plunk--press:hover {
+    transform: translate(-1px, -1px);
+  }
+}
+
+/* ─── Chips / tags ─── */
+.neo-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  font-size: 0.6875rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-primary);
+  background: var(--surface-elevated);
+  border: 1px solid var(--border-light);
+  white-space: nowrap;
+}
+
+.neo-chip--accent {
+  color: var(--bg-primary);
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.neo-chip--premium {
+  color: #FFFFFF;
+  background: var(--premium);
+  border-color: var(--premium);
+}
+
+.neo-chip--success {
+  color: var(--bg-primary);
+  background: var(--color-success);
+  border-color: var(--color-success);
+}
+
+.neo-chip--ghost {
+  background: transparent;
+  color: var(--text-secondary);
+}
+
+/* ─── Eyebrow / headings ─── */
+.neo-eyebrow {
+  font-size: 0.6875rem;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.neo-display {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+}
+
+/* ─── Inputs ─── */
+.neo-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.neo-label {
+  font-size: 0.6875rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.neo-label small {
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: none;
+  color: var(--text-muted);
+}
+
+.neo-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.neo-input-wrap > svg:first-child {
+  position: absolute;
+  left: 14px;
+  color: var(--text-muted);
+  pointer-events: none;
+  transition: color var(--transition-fast);
+}
+
+.neo-input-wrap:focus-within > svg:first-child {
+  color: var(--accent);
+}
+
+.neo-input {
+  width: 100%;
+  height: 48px;
+  padding: 0 14px;
+  font: inherit;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-light);
+  border-radius: 0;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.neo-input-wrap > svg:first-child + .neo-input {
+  padding-left: 44px;
+}
+
+.neo-input::placeholder {
+  color: var(--text-disabled);
+}
+
+.neo-input:hover {
+  border-color: #5C5C5C;
+}
+
+.neo-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 3px 3px 0 var(--accent-edge-b);
+}
+
+.neo-input[aria-invalid='true'] {
+  border-color: var(--color-error);
+}
+
+.neo-input-action {
+  position: absolute;
+  right: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  color: var(--text-muted);
+}
+
+.neo-input-action:hover {
+  color: var(--text-primary);
+}
+
+.neo-help {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* ─── Alerts ─── */
+.neo-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  background: var(--surface-card);
+  border: 1px solid var(--border-light);
+  border-left: 3px solid var(--accent);
+}
+
+.neo-alert svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: var(--accent);
+}
+
+.neo-alert strong {
+  color: var(--text-primary);
+}
+
+.neo-alert--error {
+  border-left-color: var(--color-error);
+  background: rgba(238, 77, 55, 0.08);
+}
+
+.neo-alert--error svg {
+  color: var(--color-error);
+}
+
+/* ─── Icon button ─── */
+.neo-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  color: var(--text-primary);
+  background: var(--surface-elevated);
+  border: 1px solid var(--border-light);
+  transition: background var(--transition-fast), border-color var(--transition-fast), transform 0.12s;
+}
+
+.neo-icon-btn:hover {
+  border-color: var(--text-muted);
+}
+
+.neo-icon-btn:active {
+  transform: translate(2px, 2px);
+}
+
+.neo-icon-btn--danger:hover {
+  color: var(--color-error);
+  border-color: var(--color-error);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ─── Crash screen (ErrorBoundary) ─── */
+.crash-screen {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 64px 24px;
+}
+
+.crash-screen h1 {
+  font-size: 2.25rem;
+}
+
+.crash-screen p {
+  color: var(--text-secondary);
+}
+
+.crash-screen__btn {
+  align-self: flex-start;
+  padding: 12px 20px;
+  font-weight: 800;
+  color: var(--bg-primary);
+  background: var(--accent);
+  box-shadow: 3px 3px 0 var(--accent-edge-b);
+}
+
+.crash-screen details {
+  margin-top: 12px;
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+}
+
+.crash-screen pre {
+  margin-top: 8px;
+  padding: 12px;
+  overflow-x: auto;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  white-space: pre-wrap;
+  background: var(--surface-card);
+  border: 1px solid var(--border);
+}
+
+/* ─── 404 ─── */
+.not-found {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.not-found__bar {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--divider);
+}
+
+.not-found__main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 40px 24px 80px;
+  text-align: center;
+}
+
+.not-found__title {
+  margin-top: 12px;
+  font-size: 2rem;
+  color: var(--text-primary);
+}
+
+.not-found__text {
+  max-width: 320px;
+  margin-bottom: 8px;
+  color: var(--text-muted);
+}

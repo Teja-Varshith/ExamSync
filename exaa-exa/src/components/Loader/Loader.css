@@ -1,90 +1,69 @@
-/* ============================================
-   Loader & Skeleton Components
-   ============================================ */
-
+/* ─── Full-page loader: three plunk blocks bouncing ─── */
 .loader {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: var(--space-3xl) var(--space-md);
-  gap: var(--space-lg);
-  animation: fadeIn var(--transition-normal);
+  gap: 20px;
+  min-height: 60vh;
+  padding: 40px 20px;
 }
 
 .loader__spinner {
-  position: relative;
-  width: 44px;
-  height: 44px;
+  display: flex;
+  gap: 10px;
 }
 
 .loader__ring {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  border: 3px solid transparent;
-  border-top-color: var(--color-primary);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
+  width: 16px;
+  height: 16px;
+  background: var(--accent);
+  box-shadow: 3px 3px 0 var(--accent-edge-b);
+  animation: loaderHop 0.9s ease-in-out infinite;
 }
 
 .loader__ring:nth-child(2) {
-  width: 32px;
-  height: 32px;
-  top: 6px;
-  left: 6px;
-  border-top-color: var(--color-primary-light);
-  animation-duration: 0.8s;
-  animation-direction: reverse;
+  background: var(--premium);
+  box-shadow: 3px 3px 0 var(--premium-edge-b);
+  animation-delay: 0.15s;
 }
 
 .loader__ring:nth-child(3) {
-  width: 20px;
-  height: 20px;
-  top: 12px;
-  left: 12px;
-  border-top-color: var(--color-accent);
-  animation-duration: 0.6s;
+  background: var(--pink);
+  box-shadow: 3px 3px 0 #802138;
+  animation-delay: 0.3s;
+}
+
+@keyframes loaderHop {
+  0%, 60%, 100% { transform: translateY(0); }
+  30% { transform: translateY(-10px); }
 }
 
 .loader__text {
-  font-size: var(--font-size-sm);
-  color: var(--color-text-muted);
-  font-weight: var(--font-weight-medium);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-muted);
 }
 
-/* --- Skeleton Cards --- */
+/* ─── Skeletons ─── */
 .skeleton-list {
   display: flex;
   flex-direction: column;
-  gap: var(--space-md);
-  padding: var(--space-md);
+  gap: 18px;
 }
 
 .skeleton-card {
   display: flex;
-  align-items: center;
-  gap: var(--space-md);
-  padding: var(--space-lg);
-  border-radius: var(--radius-md);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border-light);
-}
-
-.skeleton-pulse {
-  background: linear-gradient(90deg,
-      var(--color-bg-alt) 25%,
-      var(--color-border-light) 50%,
-      var(--color-bg-alt) 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.5s ease-in-out infinite;
-  border-radius: var(--radius-sm);
+  gap: 14px;
+  min-height: 150px;
+  padding: 16px;
+  background: var(--surface-card);
+  border: 1px solid var(--border);
 }
 
 .skeleton-card__icon {
-  width: 44px;
-  height: 44px;
-  border-radius: var(--radius-md);
+  order: 2;
+  width: 96px;
   flex-shrink: 0;
 }
 
@@ -92,21 +71,27 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: var(--space-sm);
+  gap: 10px;
 }
 
 .skeleton-card__title {
+  width: 40%;
   height: 16px;
-  width: 70%;
 }
 
 .skeleton-card__subtitle {
-  height: 12px;
-  width: 90%;
+  width: 80%;
+  height: 22px;
 }
 
 .skeleton-card__bar {
-  height: 6px;
-  width: 60%;
-  margin-top: var(--space-xs);
+  width: 55%;
+  height: 12px;
+  margin-top: auto;
+}
+
+.skeleton-pulse {
+  background: linear-gradient(90deg, #1C1C1C 25%, #262626 50%, #1C1C1C 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s linear infinite;
 }

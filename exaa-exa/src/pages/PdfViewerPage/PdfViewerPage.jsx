@@ -1,6 +1,6 @@
 import { useMemo, useState, useCallback } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { ChevronLeft, Loader2 } from 'lucide-react';
+import { ArrowLeft, Loader2 } from 'lucide-react';
 
 import { Worker, Viewer } from '@react-pdf-viewer/core';
 import { defaultLayoutPlugin } from '@react-pdf-viewer/default-layout';
@@ -65,7 +65,6 @@ export default function PdfViewerPage() {
   const title = useMemo(() => searchParams.get('title') || 'PDF Preview', [searchParams]);
   const viewType = useMemo(() => searchParams.get('type') || 'notes', [searchParams]);
   const backLabel = viewType === 'pyqs' ? 'Back to PYQs' : 'Back to Notes';
-  const backTab = viewType === 'pyqs' ? 'pyqs' : 'notes';
 
   // Route external PDFs through the Vercel proxy to avoid CORS
   const pdfUrl = useMemo(() => getProxiedUrl(rawPdfUrl), [rawPdfUrl]);
@@ -104,10 +103,13 @@ export default function PdfViewerPage() {
   return (
     <div className="pdf-viewer-page">
       <div className="pdf-viewer-header">
-        <button type="button" className="pdf-back-btn" onClick={handleBack}>
-          <ChevronLeft size={16} /> {backLabel}
+        <button type="button" className="pdf-back-btn" onClick={handleBack} aria-label={backLabel}>
+          <ArrowLeft size={20} />
         </button>
-        <div className="pdf-viewer-title">{title}</div>
+        <div className="pdf-viewer-title" title={title}>{title}</div>
+        <span className={`neo-chip pdf-viewer-kind ${viewType === 'pyqs' ? 'neo-chip--ghost' : 'neo-chip--accent'}`}>
+          {viewType === 'pyqs' ? 'PYQ' : 'Notes'}
+        </span>
       </div>
 
       {!rawPdfUrl ? (

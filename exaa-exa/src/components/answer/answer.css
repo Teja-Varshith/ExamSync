@@ -1,0 +1,213 @@
+/* Shared by the student Pakka Pass viewer and the admin mobile preview */
+
+.iq-q {
+  background: var(--surface-card);
+  border: 1px solid var(--border);
+  animation: fadeInUp 0.3s ease-out both;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.iq-q.is-open {
+  border-color: var(--border-light);
+  box-shadow: 3px 3px 0 var(--premium-edge-b);
+}
+
+.iq-q__head {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  width: 100%;
+  padding: 14px;
+  text-align: left;
+  color: var(--text-primary);
+}
+
+.iq-q__num {
+  flex-shrink: 0;
+  min-width: 36px;
+  padding: 3px 0;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-align: center;
+  color: var(--text-secondary);
+  background: var(--surface-elevated);
+  border: 1px solid var(--border-light);
+}
+
+.iq-q.is-open .iq-q__num {
+  color: #FFFFFF;
+  background: var(--premium);
+  border-color: var(--premium);
+}
+
+.iq-q__text {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.iq-q__chev {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--text-muted);
+  transition: transform var(--transition-fast);
+}
+
+.iq-q.is-open .iq-q__chev {
+  transform: rotate(180deg);
+  color: #B49AFF;
+}
+
+.iq-q__body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px 18px;
+  border-top: 1px dashed var(--border-light);
+  animation: fadeIn 0.2s ease-out;
+}
+
+/* Rich answer HTML from the TipTap editor */
+.es-answer {
+  font-size: 0.9375rem;
+  line-height: 1.75;
+  color: var(--text-secondary);
+  overflow-wrap: anywhere;
+}
+
+.es-answer > * + * {
+  margin-top: 10px;
+}
+
+.es-answer p {
+  color: inherit;
+  line-height: inherit;
+}
+
+.es-answer h1,
+.es-answer h2,
+.es-answer h3 {
+  margin-top: 16px;
+  color: var(--text-primary);
+}
+
+.es-answer h1 { font-size: 1.25rem; }
+.es-answer h2 { font-size: 1.125rem; }
+.es-answer h3 { font-size: 1rem; }
+
+.es-answer ul,
+.es-answer ol {
+  padding-left: 22px;
+}
+
+.es-answer ul { list-style: square; }
+.es-answer ol { list-style: decimal; }
+
+.es-answer li::marker {
+  color: var(--accent);
+}
+
+.es-answer li + li {
+  margin-top: 4px;
+}
+
+.es-answer blockquote {
+  padding: 8px 14px;
+  color: var(--text-primary);
+  background: var(--surface-elevated);
+  border-left: 3px solid var(--accent);
+}
+
+.es-answer strong {
+  color: var(--text-primary);
+}
+
+.es-answer em {
+  color: var(--text-muted);
+}
+
+.es-answer img,
+.es-answer div[data-type='image-wrapper'] img {
+  max-width: 100%;
+  height: auto;
+  margin: 12px 0;
+  background: #FFFFFF;
+  border: 1px solid var(--border-light);
+}
+
+.es-answer div[data-type='image-wrapper'] {
+  margin: 12px 0;
+}
+
+.es-answer code {
+  padding: 1px 5px;
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  background: var(--surface-elevated);
+}
+
+.es-answer h4 { font-size: 0.9375rem; }
+
+.es-answer pre {
+  padding: 12px 14px;
+  overflow-x: auto;
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  color: var(--text-primary);
+  background: #000;
+  border: 1px solid var(--border-light);
+}
+
+.es-answer pre code {
+  padding: 0;
+  background: transparent;
+}
+
+.es-answer hr {
+  border: 0;
+  border-top: 1px dashed var(--border-light);
+}
+
+.es-answer a {
+  color: var(--accent);
+  text-decoration: underline;
+}
+
+/* Tables scroll sideways on narrow phones */
+.es-answer table {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  border-collapse: collapse;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+
+.es-answer th,
+.es-answer td {
+  min-width: 110px;
+  padding: 8px 10px;
+  text-align: left;
+  vertical-align: top;
+  border: 1px solid var(--border-light);
+}
+
+.es-answer th {
+  color: var(--bg-primary);
+  background: var(--accent);
+  font-weight: 800;
+}
+
+.es-answer tr:nth-child(even) td {
+  background: var(--surface-elevated);
+}
+
+.es-answer div[data-type='image-wrapper'] img {
+  max-width: 100% !important;
+}
+.iq-q__placeholder { color: var(--text-muted); font-weight: 600; }

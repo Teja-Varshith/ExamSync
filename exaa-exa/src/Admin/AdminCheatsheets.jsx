@@ -1,26 +1,30 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Calendar, FileText, ChevronRight, Plus, Sparkles } from 'lucide-react';
+import { Plus, PencilLine, CheckCircle2, CircleDashed } from 'lucide-react';
 import api from '../services/api';
+import AdminLayout from '../components/layout/AdminLayout';
+import AbstractArt from '../components/brand/AbstractArt';
+import NeoButton from '../components/ui/NeoButton';
+import { CardSkeleton } from '../components/Loader/Loader';
+
+// Define exam types
+const EXAM_TYPES = [
+  { id: 'mid1', label: 'Mid 1', key: 'Mid 1', blurb: 'First mid-term' },
+  { id: 'mid2', label: 'Mid 2', key: 'Mid 2', blurb: 'Second mid-term' },
+  { id: 'sem', label: 'Semester', key: 'Sem', blurb: 'End-semester exam' },
+];
 
 export default function AdminCheatsheets() {
   const navigate = useNavigate();
   const location = useLocation();
-  const subjectState = location.state || {};
-  
   const {
     subjectName = 'Unknown Subject',
     courseCode = '',
     semester = 1,
-  } = subjectState;
+  } = location.state || {};
 
   const [subject, setSubject] = useState(null);
   const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    document.body.classList.add('admin-mode');
-    return () => document.body.classList.remove('admin-mode');
-  }, []);
 
   useEffect(() => {
     const fetchSubject = async () => {
@@ -41,136 +45,99 @@ export default function AdminCheatsheets() {
     fetchSubject();
   }, [courseCode]);
 
-  // Define exam types
-  const examTypes = [
-    { id: 'mid1', label: 'MID 1', icon: '📝' },
-    { id: 'mid2', label: 'MID 2', icon: '📋' },
-    { id: 'sem', label: 'SEM', icon: '🎓' },
-  ];
-
-  // Determine status for each exam type based on ImpQuestions data
-  const examFirebaseKeyMap = { mid1: 'Mid 1', mid2: 'Mid 2', sem: 'Sem' };
-
-  const getExamStatus = (examId) => {
-    if (!subject) return { status: 'empty', label: 'Not Started', count: 0 };
-    
-    const impQ = subject.ImpQuestions;
-    if (!impQ) return { status: 'empty', label: 'Not Started', count: 0 };
-
-    const firebaseKey = examFirebaseKeyMap[examId];
-    const examData = impQ[firebaseKey];
-
-    if (examData && typeof examData === 'object') {
-      const count = Object.keys(examData).length;
-      if (count > 0) {
-        return { status: 'completed', label: `${count} Question${count !== 1 ? 's' : ''}`, count };
-      }
-    }
-
-    return { status: 'empty', label: 'Not Started', count: 0 };
+  // Question count per exam from ImpQuestions data
+  const countFor = (exam) => {
+    const examData = subject?.ImpQuestions?.[exam.key];
+    return examData && typeof examData === 'object' ? Object.keys(examData).length : 0;
   };
 
-  const handleOpenCheatsheet = (examType) => {
-    // Navigate to the cheatsheet editor for this exam type
+  const handleOpenCheatsheet = (exam) => {
     navigate('/admin/cheatsheet-editor', {
       state: {
         subjectName,
         courseCode,
         semester,
-        examType: examType.id,
-        examLabel: examType.label,
+        examType: exam.id,
+        examLabel: exam.label.toUpperCase() === 'SEMESTER' ? 'SEM' : exam.label.toUpperCase(),
       }
     });
   };
 
+  const done = EXAM_TYPES.filter((e) => countFor(e) > 0).length;
+
   return (
-    <div className="admin-page">
-      <div className="admin-shell">
-        {/* Back Button */}
-        <button className="admin-back-btn" onClick={() => navigate('/admin')}>
-          <ArrowLeft size={18} />
-          Back to Dashboard
-        </button>
-
-        {/* Subject Hero Header */}
-        <div className="admin-cs-hero">
-          <div className="admin-cs-hero-badge">
-            Semester {semester}
+    <AdminLayout
+      crumbs={[{ label: 'Dashboard', to: '/admin' }, { label: subjectName }]}
+      eyebrow={`Semester ${semester} · ${courseCode}`}
+      title={subjectName}
+      subtitle="Build a Pakka Pass cheat sheet for each exam. Students see questions grouped by tag."
+      actions={
+        !loading && (
+          <div className="ad-progress" aria-label={`${done} of 3 cheat sheets started`}>
+            <span className="neo-label">Progress</span>
+            <div className="ad-progress__bar">
+              {EXAM_TYPES.map((e) => (
+                <span key={e.id} className={countFor(e) > 0 ? 'is-done' : ''} />
+              ))}
+            </div>
+            <span className="ad-progress__text">{done} / 3 sheets</span>
           </div>
-          <h1 className="admin-cs-hero-title">{subjectName}</h1>
-          <p className="admin-cs-hero-subtitle">
-            Select an exam below to create or view cheatsheets.
-          </p>
-          {courseCode && (
-            <span className="admin-cs-hero-code">{courseCode}</span>
-          )}
-        </div>
-
-        {/* Exams & Cheatsheets Section */}
-        <div className="admin-cs-section">
-          <h3 className="admin-cs-section-title">
-            <FileText size={18} />
-            Exams & Cheatsheets
-          </h3>
-
-          {loading ? (
-            <div className="admin-loading">Loading subject data...</div>
-          ) : (
-            <div className="admin-cs-grid">
-              {examTypes.map((exam) => {
-                const { status, label } = getExamStatus(exam.id);
-                return (
-                  <div
-                    key={exam.id}
-                    className={`admin-cs-card ${status === 'completed' ? 'admin-cs-card--completed' : ''}`}
-                  >
-                    <div className="admin-cs-card-header">
-                      <h4 className="admin-cs-card-title">{exam.label}</h4>
-                      <span className={`admin-cs-card-badge admin-cs-card-badge--${status}`}>
-                        {label}
-                      </span>
-                    </div>
-                    <div className="admin-cs-card-meta">
-                      <Calendar size={14} />
-                      <span>Pakka Pass Questions</span>
-                    </div>
-                    <button
-                      className="admin-cs-card-action"
-                      onClick={() => handleOpenCheatsheet(exam)}
-                    >
-                      {status === 'completed' ? (
-                        <>Open cheatsheet <ChevronRight size={14} /></>
-                      ) : (
-                        <><Plus size={14} /> Create cheatsheet</>
-                      )}
-                    </button>
+        )
+      }
+    >
+      {loading ? (
+        <CardSkeleton count={3} />
+      ) : (
+        <div className="ad-exams">
+          {EXAM_TYPES.map((exam, i) => {
+            const count = countFor(exam);
+            const started = count > 0;
+            return (
+              <article key={exam.id} className={`ad-exam${started ? ' is-started' : ''}`} style={{ animationDelay: `${i * 60}ms` }}>
+                <div className="ad-exam__art">
+                  <AbstractArt seed={`${courseCode}-${exam.id}`} variant={i + 1} size={120} />
+                </div>
+                <div className="ad-exam__body">
+                  <div className="ad-exam__top">
+                    <h3 className="ad-exam__title">{exam.label}</h3>
+                    {started ? (
+                      <span className="neo-chip neo-chip--success"><CheckCircle2 size={12} /> {count} question{count !== 1 ? 's' : ''}</span>
+                    ) : (
+                      <span className="neo-chip neo-chip--ghost"><CircleDashed size={12} /> Not started</span>
+                    )}
                   </div>
-                );
-              })}
-            </div>
-          )}
+                  <p className="ad-exam__blurb">{exam.blurb} · Pakka Pass questions</p>
+                  <NeoButton
+                    fullWidth
+                    variant={started ? 'secondary' : 'primary'}
+                    icon={started ? PencilLine : Plus}
+                    onClick={() => handleOpenCheatsheet(exam)}
+                  >
+                    {started ? 'Open cheat sheet' : 'Create cheat sheet'}
+                  </NeoButton>
+                </div>
+              </article>
+            );
+          })}
         </div>
+      )}
 
-        {/* Quick Stats */}
-        {subject && (
-          <div className="admin-cs-stats">
-            <div className="admin-cs-stat">
-              <span className="admin-cs-stat-label">Units</span>
-              <span className="admin-cs-stat-value">{subject.units || 0}</span>
-            </div>
-            <div className="admin-cs-stat">
-              <span className="admin-cs-stat-label">Course Type</span>
-              <span className="admin-cs-stat-value">{subject.category || '—'}</span>
-            </div>
-            <div className="admin-cs-stat">
-              <span className="admin-cs-stat-label">Sheets Created</span>
-              <span className="admin-cs-stat-value">
-                {examTypes.filter(e => getExamStatus(e.id).status === 'completed').length} / {examTypes.length}
-              </span>
-            </div>
+      {subject && (
+        <div className="ad-stats ad-stats--footer">
+          <div className="ad-stat">
+            <span className="ad-stat__label">Units</span>
+            <span className="ad-stat__value">{subject.units || 0}</span>
           </div>
-        )}
-      </div>
-    </div>
+          <div className="ad-stat">
+            <span className="ad-stat__label">Course type</span>
+            <span className="ad-stat__value ad-stat__value--sm">{subject.category || '—'}</span>
+          </div>
+          <div className="ad-stat">
+            <span className="ad-stat__label">Unlock price</span>
+            <span className="ad-stat__value">{subject.price ?? 50} coins</span>
+          </div>
+        </div>
+      )}
+    </AdminLayout>
   );
 }

@@ -1,8 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
-import { ArrowLeft, ChevronDown, ChevronRight, BookOpen } from 'lucide-react';
+import { ArrowLeft, ChevronRight, ChevronsUpDown, Sparkles } from 'lucide-react';
 import { db } from '../../firebase';
 import { doc, getDoc } from 'firebase/firestore';
+import Loader from '../../components/Loader/Loader';
+import Segmented from '../../components/ui/Segmented';
+import EmptyState from '../../components/ui/EmptyState';
+import QuestionCard from '../../components/answer/QuestionCard';
+import { toneFor } from '../../theme/neopop';
 import './ImpQuestionsViewer.css';
 
 const EXAM_TABS = [
@@ -10,37 +15,6 @@ const EXAM_TABS = [
   { id: 'Mid 2', label: 'Mid 2' },
   { id: 'Sem', label: 'Semester' },
 ];
-
-function QuestionAccordion({ question, answer, tag, index }) {
-  const [isOpen, setIsOpen] = useState(false);
-
-  return (
-    <div
-      className={`iq-accordion ${isOpen ? 'iq-accordion--open' : ''}`}
-      style={{ animationDelay: `${Math.min(index, 10) * 60}ms` }}
-    >
-      <button className="iq-accordion__header" onClick={() => setIsOpen(!isOpen)}>
-        <div className="iq-accordion__left">
-          <span className="iq-accordion__num">Q{index + 1}</span>
-        </div>
-        <div className="iq-accordion__question">{question}</div>
-        <ChevronDown
-          className={`iq-accordion__chevron ${isOpen ? 'iq-accordion__chevron--open' : ''}`}
-          size={20}
-        />
-      </button>
-      <div className={`iq-accordion__body ${isOpen ? 'iq-accordion__body--open' : ''}`}>
-        <div className="iq-accordion__answer">
-          <div className="iq-accordion__answer-label">Answer</div>
-          <div
-            className="iq-accordion__answer-content"
-            dangerouslySetInnerHTML={{ __html: answer || '<em>No answer provided.</em>' }}
-          />
-        </div>
-      </div>
-    </div>
-  );
-}
 
 export default function ImpQuestionsViewer() {
   const { subjectId } = useParams();
@@ -56,20 +30,17 @@ export default function ImpQuestionsViewer() {
 
   // Two-view state: null = tag list view, string = Q&A view for that tag
   const [selectedTag, setSelectedTag] = useState(null);
+  const [openIds, setOpenIds] = useState(() => new Set());
 
   // Resolve the back URL
   const homeId = localStorage.getItem('examsync_user_id') || '';
   const goBack = () => {
     if (window.history.state && window.history.state.idx > 0) {
       navigate(-1);
+    } else if (backUrl) {
+      navigate(backUrl, { replace: true });
     } else {
-      if (backUrl) {
-        navigate(backUrl, { replace: true });
-      } else {
-        navigate(`/subject/${encodeURIComponent(normalizedSubjectId)}?uid=${homeId}`, {
-          replace: true,
-        });
-      }
+      navigate(`/subject/${encodeURIComponent(normalizedSubjectId)}?uid=${homeId}`, { replace: true });
     }
   };
 
@@ -103,79 +74,88 @@ export default function ImpQuestionsViewer() {
     if (normalizedSubjectId) fetchQuestions();
   }, [normalizedSubjectId]);
 
-  // Build unique tags for the active exam type
-  const tagsForExam = (() => {
-    const examData = impQuestions?.[activeExam] || {};
-    const tagSet = new Set();
-    Object.values(examData).forEach(q => {
-      if (q.tag) tagSet.add(q.tag);
+  const questionsFor = (exam) =>
+    Object.entries(impQuestions?.[exam] || {})
+      .sort(([a], [b]) => Number(a) - Number(b))
+      .map(([key, val]) => ({
+        id: key,
+        question: val.question || '',
+        answer: val.answer || '',
+        tag: val.tag || 'Pakka Chadavali Amma',
+      }));
+
+  const allQuestions = questionsFor(activeExam);
+
+  // Unique tags for the active exam (question tags first, then admin-defined custom tags)
+  const tagsForExam = [...new Set([...allQuestions.map((q) => q.tag), ...customTags])];
+  const getTagCount = (tag) => allQuestions.filter((q) => q.tag === tag).length;
+  const filteredQuestions = selectedTag ? allQuestions.filter((q) => q.tag === selectedTag) : [];
+
+  const toggle = (id) =>
+    setOpenIds((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
     });
-    // Also include admin-defined custom tags
-    customTags.forEach(t => tagSet.add(t));
-    return [...tagSet];
-  })();
+  const allOpen = filteredQuestions.length > 0 && filteredQuestions.every((q) => openIds.has(q.id));
+  const toggleAll = () => setOpenIds(allOpen ? new Set() : new Set(filteredQuestions.map((q) => q.id)));
 
-  // Get questions for the active exam type
-  const examData = impQuestions?.[activeExam] || {};
-  const allQuestions = Object.entries(examData)
-    .sort(([a], [b]) => Number(a) - Number(b))
-    .map(([key, val]) => ({
-      id: key,
-      question: val.question || '',
-      answer: val.answer || '',
-      tag: val.tag || 'Pakka Chadavali Amma',
-    }));
+  const openTag = (tag) => {
+    setSelectedTag(tag);
+    setOpenIds(new Set());
+    window.scrollTo(0, 0);
+  };
 
-  // Count questions per tag
-  const getTagCount = (tag) => allQuestions.filter(q => q.tag === tag).length;
-
-  // Questions filtered by selected tag
-  const filteredQuestions = selectedTag
-    ? allQuestions.filter(q => q.tag === selectedTag)
-    : [];
+  const topbar = (onBack, title, subtitle) => (
+    <header className="iq-topbar">
+      <button type="button" className="neo-icon-btn" onClick={onBack} aria-label="Go back">
+        <ArrowLeft size={20} />
+      </button>
+      <div className="iq-topbar__text">
+        <span className="iq-topbar__title">{title}</span>
+        <span className="iq-topbar__sub">{subtitle}</span>
+      </div>
+      <span className="neo-chip neo-chip--premium"><Sparkles size={12} /> Pro</span>
+    </header>
+  );
 
   // ═══ Q&A View (when a tag is selected) ═══
   if (selectedTag) {
+    const tone = toneFor(selectedTag);
     return (
       <div className="iq-page">
-        {/* Top bar with back to tags */}
-        <div className="iq-topbar">
-          <button className="iq-back-btn" onClick={() => setSelectedTag(null)}>
-            <ArrowLeft size={20} />
-            <span>Back</span>
-          </button>
-          <div className="iq-topbar-info">
-            <span className="iq-topbar-code">{courseCode || normalizedSubjectId}</span>
-          </div>
+        {topbar(() => setSelectedTag(null), selectedTag, `${activeExam} · ${courseCode || normalizedSubjectId}`)}
+
+        <div className="iq-qa-head">
+          <span className="iq-qa-head__bar" style={{ background: tone.face }} />
+          <span className="iq-qa-head__count">
+            {filteredQuestions.length} question{filteredQuestions.length !== 1 ? 's' : ''}
+          </span>
+          {filteredQuestions.length > 1 && (
+            <button type="button" className="iq-qa-head__toggle" onClick={toggleAll}>
+              <ChevronsUpDown size={14} /> {allOpen ? 'Collapse all' : 'Expand all'}
+            </button>
+          )}
         </div>
 
-        {/* Tag title */}
-        <div className="iq-qa-header">
-          {/* <span className="iq-qa-exam-badge">{activeExam}</span> */}
-          <h2 className="iq-qa-title">{selectedTag}</h2>
-          {/* <p className="iq-qa-count">{filteredQuestions.length} question{filteredQuestions.length !== 1 ? 's' : ''}</p> */}
-        </div>
-
-        {/* Questions list */}
-        <div className="iq-content">
+        <main className="iq-content">
           {filteredQuestions.length === 0 ? (
-            <div className="iq-empty">
-              <p>No questions available for <strong>{selectedTag}</strong>.</p>
-            </div>
+            <EmptyState compact title="No questions yet" message={`Nothing has been added under “${selectedTag}” for ${activeExam}.`} />
           ) : (
-            <div className="iq-questions-list">
+            <div className="iq-q-list">
               {filteredQuestions.map((q, i) => (
-                <QuestionAccordion
+                <QuestionCard
                   key={q.id}
                   question={q.question}
                   answer={q.answer}
-                  tag={q.tag}
                   index={i}
+                  open={openIds.has(q.id)}
+                  onToggle={() => toggle(q.id)}
                 />
               ))}
             </div>
           )}
-        </div>
+        </main>
       </div>
     );
   }
@@ -183,81 +163,59 @@ export default function ImpQuestionsViewer() {
   // ═══ Tag List View (default) ═══
   return (
     <div className="iq-page">
-      {/* Top Bar */}
-      <div className="iq-topbar">
-        <button className="iq-back-btn" onClick={goBack}>
-          <ArrowLeft size={20} />
-          <span>Back</span>
-        </button>
-        <div className="iq-topbar-info">
-          <span className="iq-topbar-code">{courseCode || normalizedSubjectId}</span>
-        </div>
-      </div>
+      {topbar(goBack, 'Pakka Pass', subjectName || courseCode || normalizedSubjectId)}
 
-      {/* Page title */}
-      {/* <div className="iq-tags-hero">
-         <h1 className="iq-tags-hero__title">Pakka Pass Questions</h1> 
-        {subjectName && <p className="iq-tags-hero__sub">{subjectName}</p>}
-      </div> */}
-
-      {/* Exam type tab buttons */}
       <div className="iq-exam-tabs">
-        {EXAM_TABS.map(tab => (
-          <button
-            key={tab.id}
-            className={`iq-exam-tab ${activeExam === tab.id ? 'iq-exam-tab--active' : ''}`}
-            onClick={() => setActiveExam(tab.id)}
-          >
-            {tab.label}
-          </button>
-        ))}
+        <Segmented
+          ariaLabel="Exam"
+          value={activeExam}
+          onChange={setActiveExam}
+          options={EXAM_TABS.map((t) => ({
+            value: t.id,
+            label: t.label,
+            badge: loading ? null : questionsFor(t.id).length,
+          }))}
+        />
       </div>
 
-      {/* Tag list */}
-      <div className="iq-content">
+      <main className="iq-content">
         {loading ? (
-          <div className="iq-loading">Loading questions...</div>
+          <Loader text="Loading questions…" />
         ) : tagsForExam.length === 0 ? (
-          <div className="iq-empty">
-            <p>No questions added for <strong>{activeExam}</strong> yet.</p>
-          </div>
+          <EmptyState compact title="Coming soon" message={`Questions for ${activeExam} haven't been added yet. Check back closer to the exam.`} />
         ) : (
-          <div className="iq-tag-list">
-            {/* "All Questions" row */}
-            <button
-              className="iq-tag-row"
-              onClick={() => setSelectedTag('__all__')}
-              style={{ display: 'none' }} // hidden, just for future use
-            >
-              <div className="iq-tag-row__info">
-                <span className="iq-tag-row__name">All Questions</span>
-                <span className="iq-tag-row__count">{allQuestions.length} questions</span>
-              </div>
-              <ChevronRight size={20} className="iq-tag-row__arrow" />
-            </button>
-
-            {tagsForExam.map((tag, index) => {
-              const count = getTagCount(tag);
-              return (
-                <button
-                  key={tag}
-                  className="iq-tag-row"
-                  onClick={() => setSelectedTag(tag)}
-                  style={{ animationDelay: `${index * 60}ms` }}
-                >
-                  <div className="iq-tag-row__info">
-                    <span className="iq-tag-row__name">{tag}</span>
-                    <span className="iq-tag-row__count">
-                      {count} question{count !== 1 ? 's' : ''}
+          <>
+            <p className="iq-hint">Pick a set to start revising.</p>
+            <div className="iq-tag-list">
+              {tagsForExam.map((tag, index) => {
+                const count = getTagCount(tag);
+                const tone = toneFor(tag);
+                return (
+                  <button
+                    key={tag}
+                    type="button"
+                    className="iq-tag neo-plunk neo-plunk--press"
+                    onClick={() => openTag(tag)}
+                    disabled={count === 0}
+                    style={{ '--edge-r': tone.right, '--edge-b': tone.bottom, animationDelay: `${index * 50}ms` }}
+                  >
+                    <span className="iq-tag__swatch" style={{ background: tone.face, color: tone.ink }}>
+                      {String(index + 1).padStart(2, '0')}
                     </span>
-                  </div>
-                  <ChevronRight size={20} className="iq-tag-row__arrow" />
-                </button>
-              );
-            })}
-          </div>
+                    <span className="iq-tag__info">
+                      <span className="iq-tag__name">{tag}</span>
+                      <span className="iq-tag__count">
+                        {count === 0 ? 'No questions yet' : `${count} question${count !== 1 ? 's' : ''}`}
+                      </span>
+                    </span>
+                    <ChevronRight size={20} className="iq-tag__arrow" />
+                  </button>
+                );
+              })}
+            </div>
+          </>
         )}
-      </div>
+      </main>
     </div>
   );
 }

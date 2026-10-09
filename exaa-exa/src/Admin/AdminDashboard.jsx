@@ -1,28 +1,38 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronDown, Plus, BookOpen, Code, Tag, LogOut, PencilLine, Users } from 'lucide-react';
+import { Plus, Search, AlertCircle, BookOpen, Layers, GraduationCap } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
+import AdminLayout from '../components/layout/AdminLayout';
+import SubjectRow from './components/SubjectRow';
+import { editState } from './components/editState';
+import NeoButton from '../components/ui/NeoButton';
+import Segmented from '../components/ui/Segmented';
+import EmptyState from '../components/ui/EmptyState';
+import { CardSkeleton } from '../components/Loader/Loader';
+
+const COURSE_TYPES = [
+  { value: 'Professional Core', label: 'Core' },
+  { value: 'Professional Elective', label: 'Elective' },
+];
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
-  const [selectedSem, setSelectedSem] = useState(1);
+  const { user } = useAuth();
+  const [selectedSem, setSelectedSem] = useState(() => Number(sessionStorage.getItem('admin_sem')) || 1);
   const [subjects, setSubjects] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [search, setSearch] = useState('');
 
   // Add Subject form state
   const [subjectName, setSubjectName] = useState('');
   const [courseCode, setCourseCode] = useState('');
   const [courseType, setCourseType] = useState('Professional Core');
-
-  // Admin profile from auth context
-  const adminProfile = { name: user?.name || 'Administrator', role: user?.adminRole || 'Admin' };
+  const [formError, setFormError] = useState('');
 
   useEffect(() => {
-    document.body.classList.add('admin-mode');
-    return () => document.body.classList.remove('admin-mode');
-  }, []);
+    sessionStorage.setItem('admin_sem', String(selectedSem));
+  }, [selectedSem]);
 
   // Fetch subjects whenever semester changes
   useEffect(() => {
@@ -40,9 +50,18 @@ export default function AdminDashboard() {
     fetchSubjects();
   }, [selectedSem]);
 
-  const handleAddSubject = () => {
+  const duplicate = courseCode.trim()
+    ? subjects.find((s) => (s.courseCode || '').toLowerCase() === courseCode.trim().toLowerCase())
+    : null;
+
+  const handleAddSubject = (e) => {
+    e.preventDefault();
     if (!subjectName.trim() || !courseCode.trim()) {
-      alert('Please fill Subject Name and Course Code');
+      setFormError('Add both a subject name and a course code.');
+      return;
+    }
+    if (duplicate) {
+      setFormError(`${duplicate.courseCode} already exists in Semester ${selectedSem}. Edit it from the list instead.`);
       return;
     }
     // Navigate to syllabus page, passing subject info via state
@@ -56,196 +75,144 @@ export default function AdminDashboard() {
     });
   };
 
-  const handleEditSubject = (subject) => {
-    navigate('/admin/add-syllabus', {
+  const openSheets = (sub) =>
+    navigate('/admin/cheatsheets', {
       state: {
-        isEdit: true,
-        semester: subject.semester,
-        subjectName: subject.subjectName || subject.name,
-        courseCode: subject.courseCode || subject.code,
-        courseType: subject.courseType || subject.category,
-        noOfUnits: subject.noOfUnits || subject.units || 1,
-        customTags: subject.customTags || [],
-        price: subject.price || 0,
-        Payment: subject.Payment || false,
+        subjectName: sub.name || sub.subjectName,
+        courseCode: sub.courseCode || sub.code,
+        semester: sub.semester || selectedSem,
       }
     });
-  };
+
+  const q = search.trim().toLowerCase();
+  const visible = q
+    ? subjects.filter((s) => `${s.name} ${s.courseCode}`.toLowerCase().includes(q))
+    : subjects;
+  const coreCount = subjects.filter((s) => s.courseType === 'Professional Core').length;
 
   return (
-    <div className="admin-page">
-      <div className="admin-shell">
-        {/* Admin Header */}
-        <div className="admin-header">
-          <div className="admin-header-info">
-            <span className="admin-header-eyebrow">Admin Portal — {user?.collegeName || ''}</span>
-            <h2 className="admin-header-name">{adminProfile.name}</h2>
-            <span className="admin-header-role">{adminProfile.role}</span>
-          </div>
-          <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-            <button
-              onClick={() => navigate('/admin/examites')}
-              className="admin-logout-btn"
-              style={{ background: 'rgba(255, 215, 0, 0.12)', borderColor: 'rgba(255, 215, 0, 0.3)', color: '#FFD700' }}
-            >
-              <Users size={16} /> Examites
-            </button>
-            <button
-              onClick={logout}
-              className="admin-logout-btn"
-            >
-              <LogOut size={16} /> Logout
-            </button>
-          </div>
+    <AdminLayout
+      eyebrow={user?.collegeName || 'Admin'}
+      title={`Welcome, ${(user?.name || 'Admin').split(' ')[0]}`}
+      subtitle="Pick a semester to manage its subjects, syllabus and cheat sheets."
+    >
+      {/* Stats */}
+      <div className="ad-stats">
+        <div className="ad-stat ad-stat--accent">
+          <GraduationCap size={18} />
+          <span className="ad-stat__label">Semester</span>
+          <span className="ad-stat__value">{selectedSem}</span>
         </div>
-
-        <div className="admin-grid">
-          <div className="admin-main">
-            {/* Semester Dropdown */}
-            <div className="admin-section">
-              <label className="admin-label">Select Semester</label>
-              <div className="admin-select-wrapper">
-                <select
-                  className="admin-select"
-                  value={selectedSem}
-                  onChange={(e) => setSelectedSem(e.target.value)}
-                >
-                  {[1, 2, 3, 4, 5, 6, 7, 8].map(s => (
-                    <option key={s} value={s}>Semester {s}</option>
-                  ))}
-                </select>
-                <ChevronDown size={18} className="admin-select-icon" />
-              </div>
-            </div>
-
-            {/* Existing Subjects for the selected semester */}
-            <div className="admin-section">
-              <h3 className="admin-section-title">
-                <BookOpen size={18} /> Subjects in Semester {selectedSem}
-              </h3>
-              {loading ? (
-                <div className="admin-loading">
-                  Loading from Firestore...
-                </div>
-              ) : subjects.length === 0 ? (
-                <div className="admin-empty">
-                  No subjects added for this semester yet.
-                </div>
-              ) : (
-                <div className="admin-subjects-list">
-                  {subjects.map((sub) => (
-                    <div key={sub.id} className="admin-subject-item">
-                      <div className="admin-subject-item-icon">{sub.icon}</div>
-                      <div className="admin-subject-item-info">
-                        <div className="admin-subject-item-name">{sub.name}</div>
-                        <div className="admin-subject-item-meta">
-                          {sub.courseCode && <span>{sub.courseCode}</span>}
-                          {sub.courseType && <span> · {sub.courseType}</span>}
-                          {' · '}{sub.units} Unit{sub.units !== 1 ? 's' : ''}
-                        </div>
-                      </div>
-                      <div className="admin-subject-actions">
-                        <button
-                          className="admin-edit-btn"
-                          type="button"
-                          onClick={() => handleEditSubject(sub)}
-                          aria-label={`Edit ${sub.name}`}
-                        >
-                          <PencilLine size={16} /> Edit
-                        </button>
-                        <button
-                          className="admin-sheet-btn"
-                          type="button"
-                          aria-label={`Create sheet for ${sub.name}`}
-                          onClick={() => navigate('/admin/cheatsheets', {
-                            state: {
-                              subjectName: sub.name || sub.subjectName,
-                              courseCode: sub.courseCode || sub.code,
-                              semester: sub.semester || selectedSem,
-                            }
-                          })}
-                        >
-                          Cheat Sheets
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-
-          <aside className="admin-aside">
-            <div className="admin-section admin-metrics">
-              <div className="admin-metric">
-                <span className="admin-metric-label">Active Semester</span>
-                <span className="admin-metric-value">Semester {selectedSem}</span>
-              </div>
-              <div className="admin-metric">
-                <span className="admin-metric-label">Subjects</span>
-                <span className="admin-metric-value">{subjects.length}</span>
-              </div>
-            </div>
-
-            {/* Add New Subject - Inline Section */}
-            <div className="admin-section admin-add-section">
-              <h3 className="admin-section-title">
-                <Plus size={18} /> Add New Subject
-              </h3>
-
-              <div className="admin-form-group">
-                <label className="admin-label">Subject Name</label>
-                <input
-                  type="text"
-                  className="admin-input"
-                  placeholder="e.g. Compiler Design"
-                  value={subjectName}
-                  onChange={(e) => setSubjectName(e.target.value)}
-                />
-              </div>
-
-              <div className="admin-form-group">
-                <label className="admin-label">
-                  <Code size={14} style={{ verticalAlign: 'middle', marginRight: '6px' }} />
-                  Course Code
-                </label>
-                <input
-                  type="text"
-                  className="admin-input"
-                  placeholder="e.g. CS302"
-                  value={courseCode}
-                  onChange={(e) => setCourseCode(e.target.value)}
-                />
-              </div>
-
-              <div className="admin-form-group">
-                <label className="admin-label">
-                  <Tag size={14} style={{ verticalAlign: 'middle', marginRight: '6px' }} />
-                  Course Type
-                </label>
-                <div className="admin-type-options">
-                  <div
-                    className={`admin-type-option ${courseType === 'Professional Core' ? 'selected' : ''}`}
-                    onClick={() => setCourseType('Professional Core')}
-                  >
-                    Professional Core
-                  </div>
-                  <div
-                    className={`admin-type-option ${courseType === 'Professional Elective' ? 'selected' : ''}`}
-                    onClick={() => setCourseType('Professional Elective')}
-                  >
-                    Professional Elective
-                  </div>
-                </div>
-              </div>
-
-              <button className="btn btn-primary btn-lg admin-primary-action" onClick={handleAddSubject}>
-                Next: Add Syllabus
-              </button>
-            </div>
-          </aside>
+        <div className="ad-stat">
+          <BookOpen size={18} />
+          <span className="ad-stat__label">Subjects</span>
+          <span className="ad-stat__value">{loading ? '–' : subjects.length}</span>
+        </div>
+        <div className="ad-stat">
+          <Layers size={18} />
+          <span className="ad-stat__label">Core / Elective</span>
+          <span className="ad-stat__value">{loading ? '–' : `${coreCount} / ${subjects.length - coreCount}`}</span>
         </div>
       </div>
-    </div>
+
+      <div className="ad-grid">
+        <section className="ad-panel">
+          <div className="ad-panel__head">
+            <h2 className="ad-panel__title">Subjects</h2>
+            <div className="neo-input-wrap ad-search">
+              <Search size={16} />
+              <input
+                className="neo-input"
+                placeholder="Search name or code"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                aria-label="Search subjects"
+              />
+            </div>
+          </div>
+
+          <Segmented
+            ariaLabel="Semester"
+            value={selectedSem}
+            onChange={(s) => { setSelectedSem(s); setSearch(''); }}
+            options={[1, 2, 3, 4, 5, 6, 7, 8].map((s) => ({ value: s, label: `Sem ${s}` }))}
+          />
+
+          <div className="ad-list">
+            {loading ? (
+              <CardSkeleton count={2} />
+            ) : visible.length === 0 ? (
+              <EmptyState
+                compact
+                title={q ? 'No matches' : `No subjects in Semester ${selectedSem}`}
+                message={q ? 'Try a different name or course code.' : 'Use “Add a subject” to create the first one.'}
+              />
+            ) : (
+              visible.map((sub, i) => (
+                <SubjectRow
+                  key={sub.id}
+                  subject={sub}
+                  index={i}
+                  onEdit={(s) => navigate('/admin/add-syllabus', { state: editState(s) })}
+                  onSheets={openSheets}
+                />
+              ))
+            )}
+          </div>
+        </section>
+
+        {/* Add New Subject */}
+        <aside className="ad-panel ad-panel--accent">
+          <div className="ad-panel__head">
+            <h2 className="ad-panel__title"><Plus size={18} /> Add a subject</h2>
+          </div>
+          <p className="ad-panel__hint">
+            Adds to <strong>Semester {selectedSem}</strong>. You&apos;ll set up units, notes and PYQs on the next step.
+          </p>
+
+          <form className="ad-form" onSubmit={handleAddSubject} noValidate>
+            <div className="neo-field">
+              <label className="neo-label" htmlFor="new-subject-name">Subject name</label>
+              <input
+                id="new-subject-name"
+                className="neo-input"
+                placeholder="e.g. Compiler Design"
+                value={subjectName}
+                onChange={(e) => { setSubjectName(e.target.value); setFormError(''); }}
+              />
+            </div>
+
+            <div className="neo-field">
+              <label className="neo-label" htmlFor="new-course-code">Course code</label>
+              <input
+                id="new-course-code"
+                className="neo-input"
+                placeholder="e.g. 21CS302"
+                value={courseCode}
+                aria-invalid={Boolean(duplicate)}
+                onChange={(e) => { setCourseCode(e.target.value); setFormError(''); }}
+              />
+              {duplicate && <span className="neo-help ad-warn">Already used by “{duplicate.name}”.</span>}
+            </div>
+
+            <div className="neo-field">
+              <span className="neo-label">Course type</span>
+              <Segmented ariaLabel="Course type" value={courseType} onChange={setCourseType} options={COURSE_TYPES} />
+            </div>
+
+            {formError && (
+              <div className="neo-alert neo-alert--error" role="alert">
+                <AlertCircle size={16} />
+                <span>{formError}</span>
+              </div>
+            )}
+
+            <NeoButton type="submit" size="big" fullWidth showArrow>
+              Continue to syllabus
+            </NeoButton>
+          </form>
+        </aside>
+      </div>
+    </AdminLayout>
   );
 }

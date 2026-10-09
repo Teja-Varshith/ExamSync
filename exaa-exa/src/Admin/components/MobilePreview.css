@@ -1,0 +1,152 @@
+
+.mp-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(6px);
+  animation: fadeIn 0.15s ease-out;
+}
+
+.mp {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  max-height: 100%;
+  animation: scaleIn 0.18s ease-out;
+}
+
+.mp__bar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  min-width: min(560px, 92vw);
+  padding: 10px 12px;
+  background: var(--surface-card);
+  border: 1px solid var(--border-light);
+}
+
+.mp__title {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.875rem;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.mp__bar .neo-seg {
+  flex-shrink: 0;
+}
+
+.mp__stage {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-height: 0;
+}
+
+.mp__nav:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* Phone frame */
+.mp__phone {
+  position: relative;
+  height: min(780px, calc(100vh - 150px));
+  padding: 12px;
+  background: #050505;
+  border: 2px solid #2A2A2A;
+  border-radius: 44px;
+  box-shadow: 8px 8px 0 #000, 0 30px 80px rgba(0, 0, 0, 0.6);
+  transition: width 0.2s ease;
+}
+
+.mp__notch {
+  position: absolute;
+  top: 18px;
+  left: 50%;
+  z-index: 3;
+  width: 96px;
+  height: 26px;
+  background: #000;
+  border-radius: 20px;
+  transform: translateX(-50%);
+}
+
+.mp__screen {
+  height: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+  background: var(--bg-primary);
+  border-radius: 32px;
+  scrollbar-width: none;
+}
+
+.mp__screen::-webkit-scrollbar {
+  display: none;
+}
+
+.mp__status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 44px;
+  padding: 0 26px;
+  font-size: 0.8125rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  background: var(--bg-primary);
+}
+
+.mp__status-icons {
+  display: flex;
+  gap: 4px;
+}
+
+.mp__status-icons i {
+  width: 14px;
+  height: 9px;
+  background: var(--text-primary);
+}
+
+.mp__status-icons i:nth-child(1) { width: 4px; }
+.mp__status-icons i:nth-child(2) { width: 8px; }
+
+/* The student page is normally full-viewport; contain it in the frame */
+.mp__app.iq-page {
+  min-height: calc(100% - 44px);
+}
+
+.mp__app .iq-topbar {
+  position: sticky;
+  top: 0;
+}
+
+.mp__hint {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+@media (max-width: 640px) {
+  .mp__nav {
+    display: none;
+  }
+
+  .mp__bar {
+    min-width: 0;
+  }
+
+  .mp__phone {
+    width: 100% !important;
+    max-width: 100%;
+  }
+}

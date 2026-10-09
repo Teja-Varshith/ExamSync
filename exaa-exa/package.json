@@ -10,6 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@cred/neopop-web": "^1.0.0",
     "@google/genai": "^1.48.0",
     "@google/generative-ai": "^0.24.1",
     "@radix-ui/react-dialog": "^1.1.15",
@@ -43,6 +44,7 @@
     "react-markdown": "^10.1.0",
     "react-router-dom": "^7.14.0",
     "react-syntax-highlighter": "^16.1.1",
+    "styled-components": "^5.3.11",
     "tailwind-merge": "^3.5.0",
     "tailwindcss": "^4.2.2",
     "tesseract.js": "^7.0.0",

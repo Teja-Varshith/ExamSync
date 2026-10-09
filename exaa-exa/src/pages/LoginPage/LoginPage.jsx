@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { Eye, EyeOff, LogIn, BookOpen } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import './LoginPage.css';
+import { Eye, EyeOff, User, Lock, Building2, AlertCircle } from 'lucide-react';
+import NeoButton from '../../components/ui/NeoButton';
+import AuthLayout from './AuthLayout';
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -16,8 +16,13 @@ export default function LoginPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    setLoading(true);
 
+    if (!collegeCode.trim()) {
+      setError('Enter your college code to sign in as an admin.');
+      return;
+    }
+
+    setLoading(true);
     const result = await login(username, password, collegeCode);
     if (!result.success) {
       setError(result.error);
@@ -26,101 +31,82 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="login-page">
-      <div className="login-card">
-        {/* Logo */}
-        <div className="login-logo">
-          <div className="login-logo-icon">
-            <BookOpen size={28} strokeWidth={2.5} />
-          </div>
-          <h1 className="login-title">ExamSync</h1>
-          <p className="login-subtitle">Sign in to your account</p>
-        </div>
-
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="login-form">
-          <div className="login-field">
-            <label className="login-label" htmlFor="username">Username</label>
-            <input
-              id="username"
-              type="text"
-              className="login-input"
-              placeholder="Enter your username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              autoFocus
-              autoComplete="username"
-            />
-          </div>
-
-          <div className="login-field">
-            <label className="login-label" htmlFor="password">Password</label>
-            <div className="login-password-wrapper">
-              <input
-                id="password"
-                type={showPassword ? 'text' : 'password'}
-                className="login-input"
-                placeholder="Enter your password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                autoComplete="current-password"
-              />
-              <button
-                type="button"
-                className="login-password-toggle"
-                onClick={() => setShowPassword(!showPassword)}
-                tabIndex={-1}
-              >
-                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-              </button>
-            </div>
-          </div>
-
-          <div className="login-field">
-            <label className="login-label" htmlFor="collegeCode">
-              College Code <span style={{ fontWeight: 400, color: 'var(--color-text-muted)' }}>(Admin only)</span>
-            </label>
+    <AuthLayout
+      role="admin"
+      title="Welcome back"
+      subtitle="Sign in to manage subjects, examites and cheatsheets for your college."
+    >
+      <form onSubmit={handleSubmit} className="auth-form" noValidate>
+        <div className="neo-field">
+          <label className="neo-label" htmlFor="collegeCode">College code</label>
+          <div className="neo-input-wrap">
+            <Building2 size={18} />
             <input
               id="collegeCode"
               type="text"
-              className="login-input"
-              placeholder="e.g. gmrit (leave empty for student)"
+              className="neo-input"
+              placeholder="e.g. gmrit"
               value={collegeCode}
               onChange={(e) => setCollegeCode(e.target.value)}
-              autoComplete="off"
+              autoComplete="organization"
+              autoCapitalize="none"
+              autoFocus
             />
           </div>
+        </div>
 
-          {error && (
-            <div className="login-error">{error}</div>
-          )}
+        <div className="neo-field">
+          <label className="neo-label" htmlFor="username">Username</label>
+          <div className="neo-input-wrap">
+            <User size={18} />
+            <input
+              id="username"
+              type="text"
+              className="neo-input"
+              placeholder="Your admin username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              autoComplete="username"
+              autoCapitalize="none"
+            />
+          </div>
+        </div>
 
-          <button
-            type="submit"
-            className="login-btn"
-            disabled={loading}
-          >
-            {loading ? (
-              <div className="login-spinner" />
-            ) : (
-              <>
-                <LogIn size={18} />
-                Sign In
-              </>
-            )}
-          </button>
-        </form>
+        <div className="neo-field">
+          <label className="neo-label" htmlFor="password">Password</label>
+          <div className="neo-input-wrap">
+            <Lock size={18} />
+            <input
+              id="password"
+              type={showPassword ? 'text' : 'password'}
+              className="neo-input"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              autoComplete="current-password"
+            />
+            <button
+              type="button"
+              className="neo-input-action"
+              onClick={() => setShowPassword(!showPassword)}
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
+            >
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
+          </div>
+        </div>
 
-        {/* Hints */}
-        <p className="login-hint">
-          Enter any username to access as student · Fill college code for admin
-        </p>
-        <p className="login-hint" style={{ marginTop: '8px' }}>
-          <Link to="/author" style={{ color: 'var(--color-primary)', textDecoration: 'none', fontWeight: 600 }}>
-            Login as Author →
-          </Link>
-        </p>
-      </div>
-    </div>
+        {error && (
+          <div className="neo-alert neo-alert--error" role="alert">
+            <AlertCircle size={16} />
+            <span>{error}</span>
+          </div>
+        )}
+
+        <NeoButton type="submit" size="big" fullWidth loading={loading} showArrow={!loading}>
+          {loading ? 'Signing in…' : 'Sign in as Admin'}
+        </NeoButton>
+      </form>
+    </AuthLayout>
   );
 }
