@@ -12,7 +12,6 @@
  */
 
 const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
-const DEFAULT_MODEL = 'openai/gpt-oss-120b';
 const MAX_ANSWER_CHARS = 20000;
 const MAX_QUESTION_CHARS = 2000;
 
@@ -60,7 +59,7 @@ export async function formatAnswer({ question = '', answer = '' } = {}, env = pr
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: env.GROQ_MODEL || DEFAULT_MODEL,
+      model: env.GROQ_MODEL,
       temperature: 0.2,
       max_tokens: 4096,
       messages: [
