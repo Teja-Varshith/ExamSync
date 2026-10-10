@@ -28,7 +28,7 @@ export function getImageKitAuth(env = process.env) {
     expire,
     signature,
     publicKey,
-    urlEndpoint: urlEndpoint || 'https://ik.imagekit.io/ygyhdellf',
+    urlEndpoint: urlEndpoint,
   };
 }
 
