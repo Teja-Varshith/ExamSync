@@ -1,0 +1,381 @@
+/* ============================================
+   Landing Page (ExamSync × UniSync) — Compact Single Viewport
+   ============================================ */
+
+/* ─── Break out of mobile #root max-width (480px) ─── */
+body.landing-mode #root,
+body:has(.lp-page) #root,
+body.landing-mode .app-container,
+body:has(.lp-page) .app-container {
+  max-width: 100vw !important;
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+  background-color: var(--bg, #0d0d0d) !important;
+}
+
+body.landing-mode,
+body:has(.lp-page) {
+  overflow-x: hidden;
+  background-color: var(--bg, #0d0d0d) !important;
+  width: 100%;
+}
+
+.lp-page {
+  min-height: 100vh;
+  width: 100%;
+  background-color: var(--bg, #0d0d0d);
+  color: var(--text, #ffffff);
+  display: flex;
+  flex-direction: column;
+}
+
+/* ─── Header / Navigation Bar ─── */
+.lp-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  width: 100%;
+  background-color: rgba(13, 13, 13, 0.94);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-bottom: 2px solid var(--border, #2a2a2a);
+}
+
+.lp-header__inner {
+  max-width: 1080px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 10px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.lp-brand {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+  transition: transform 0.15s;
+}
+
+.lp-brand:hover {
+  transform: scale(1.02);
+}
+
+/* ─── Main Content Area (Compact for single viewport) ─── */
+.lp-main {
+  flex: 1;
+  width: 100%;
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 18px 24px 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 16px;
+}
+
+.lp-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 14px;
+  margin: 0 auto;
+  max-width: 900px;
+  width: 100%;
+}
+
+.lp-title {
+  font-size: clamp(22px, 2.6vw, 34px);
+  line-height: 1.15;
+  font-weight: 900;
+  color: #ffffff;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+.lp-title__accent {
+  color: var(--accent, #ffcb45);
+  text-shadow: 0 0 24px rgba(255, 203, 69, 0.28);
+}
+
+/* ─── Action CTAs (Before Banner Image) ─── */
+.lp-actions {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  width: 100%;
+  max-width: 860px;
+}
+
+.lp-cta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  background-color: var(--surface, #161616);
+  border: 2px solid var(--border-strong, #3d3d3d);
+  border-radius: 6px;
+  text-decoration: none;
+  color: #ffffff;
+  box-shadow: 4px 4px 0px #000000;
+  transition: transform 0.12s, box-shadow 0.12s, border-color 0.15s, background-color 0.15s;
+  text-align: left;
+}
+
+.lp-cta:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0px #000000;
+}
+
+.lp-cta:active {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0px #000000;
+}
+
+.lp-cta__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 6px;
+  flex-shrink: 0;
+  border: 1.5px solid #000000;
+}
+
+.lp-cta__content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.lp-cta__eyebrow {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted, #8a8a8a);
+  line-height: 1.2;
+}
+
+.lp-cta__main {
+  font-size: 13px;
+  font-weight: 800;
+  color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 1px;
+}
+
+.lp-cta__arrow {
+  color: var(--text-muted, #8a8a8a);
+  flex-shrink: 0;
+  transition: color 0.15s, transform 0.15s;
+}
+
+.lp-cta:hover .lp-cta__arrow {
+  color: #ffffff;
+  transform: translate(2px, -2px);
+}
+
+/* Play Store CTA */
+.lp-cta--play {
+  background-color: #17160c;
+  border-color: #634f0c;
+}
+.lp-cta--play .lp-cta__icon {
+  background-color: var(--accent, #ffcb45);
+  color: #0d0d0d;
+}
+.lp-cta--play:hover {
+  border-color: var(--accent, #ffcb45);
+}
+
+/* Instagram CTA */
+.lp-cta--insta {
+  background-color: #1b0f19;
+  border-color: #69214f;
+}
+.lp-cta--insta .lp-cta__icon {
+  background: linear-gradient(135deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+  color: #ffffff;
+}
+.lp-cta--insta:hover {
+  border-color: #e6683c;
+}
+
+/* Contact CTA */
+.lp-cta--contact {
+  background-color: #121824;
+  border-color: #1c3b57;
+}
+.lp-cta--contact .lp-cta__icon {
+  background-color: #1971c2;
+  color: #ffffff;
+}
+.lp-cta--contact:hover {
+  border-color: #339af0;
+}
+
+/* ─── Banner Card Showcase ─── */
+.lp-banner-card {
+  width: 100%;
+  max-width: 780px;
+  border: 2px solid var(--border-strong, #3d3d3d);
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 6px 6px 0px #000000;
+  overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+}
+
+.lp-banner-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 8px 8px 0px #000000;
+  border-color: var(--accent, #ffcb45);
+}
+
+.lp-banner-frame {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+  padding: 4px;
+}
+
+.lp-banner-img {
+  width: 100%;
+  max-height: clamp(190px, 34vh, 300px);
+  height: auto;
+  display: block;
+  object-fit: contain;
+}
+
+/* ─── Footer (Compact) ─── */
+.lp-footer {
+  margin-top: auto;
+  width: 100%;
+  border-top: 1.5px solid var(--border, #2a2a2a);
+  background-color: #080808;
+}
+
+.lp-footer__inner {
+  max-width: 1080px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 12px 24px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.lp-footer__brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.lp-footer__copy {
+  font-size: 11px;
+  color: var(--text-muted, #8a8a8a);
+  margin: 0;
+}
+
+.lp-footer__email {
+  color: var(--accent, #ffcb45);
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.lp-footer__email:hover {
+  text-decoration: underline;
+}
+
+.lp-footer__links {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.lp-footer__link {
+  color: var(--text-sec, #bdbdbd);
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 0.15s;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.lp-footer__link:hover {
+  color: var(--accent, #ffcb45);
+}
+
+.lp-footer__admin-link {
+  color: var(--text-muted, #8a8a8a);
+  opacity: 0.6;
+}
+
+.lp-footer__admin-link:hover {
+  opacity: 1;
+  color: #ffffff;
+}
+
+.lp-footer__bottom {
+  max-width: 1080px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 6px 24px 10px;
+  border-top: 1px solid #141414;
+  text-align: center;
+  font-size: 11px;
+  color: var(--text-muted, #555555);
+}
+
+/* ─── Mobile Responsiveness ─── */
+@media (max-width: 860px) {
+  .lp-actions {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    max-width: 480px;
+  }
+
+  .lp-header__inner {
+    padding: 10px 16px;
+  }
+
+  .lp-main {
+    padding: 16px 16px 24px;
+    gap: 16px;
+  }
+}
+
+@media (max-width: 640px) {
+  .lp-footer__inner {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 12px 16px 8px;
+    gap: 8px;
+  }
+
+  .lp-footer__brand {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .lp-footer__bottom {
+    padding: 6px 16px 8px;
+  }
+}

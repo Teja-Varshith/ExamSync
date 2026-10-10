@@ -4,6 +4,7 @@ import { ConfirmProvider } from './components/ui/ConfirmDialog';
 import Toaster from './components/ui/Toaster';
 
 // Student pages
+import LandingPage from './pages/LandingPage/LandingPage';
 import SubjectsPage from './pages/SubjectsPage/SubjectsPage';
 import SubjectDetailPage from './pages/SubjectDetailPage/SubjectDetailPage';
 import PdfViewerPage from './pages/PdfViewerPage/PdfViewerPage';
@@ -55,7 +56,8 @@ function AppRoutes() {
   return (
     <div className="app-container relative overflow-x-hidden">
       <Routes>
-        <Route path="/" element={<SubjectsPage />} />
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/student" element={<SubjectsPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/author" element={<AuthorLoginPage />} />
         <Route path="/subject/:subjectId" element={<SubjectDetailPage />} />

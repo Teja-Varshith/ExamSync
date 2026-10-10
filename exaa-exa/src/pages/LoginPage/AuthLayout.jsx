@@ -44,7 +44,7 @@ export default function AuthLayout({ role, title, subtitle, children }) {
       <main className="auth-main">
         <div className="auth-main__inner">
           <Link to="/" className="auth-back">
-            <ArrowLeft size={16} /> Back to subjects
+            <ArrowLeft size={16} /> Back to home
           </Link>
 
           <div className="auth-mobile-logo">
@@ -72,10 +72,6 @@ export default function AuthLayout({ role, title, subtitle, children }) {
               {children}
             </div>
           </ElevatedCard>
-
-          <p className="auth-foot">
-            Students don&apos;t need an account — <Link to="/">browse subjects</Link>.
-          </p>
         </div>
       </main>
     </div>

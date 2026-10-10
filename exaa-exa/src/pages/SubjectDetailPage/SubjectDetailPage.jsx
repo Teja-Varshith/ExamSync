@@ -103,7 +103,7 @@ export default function SubjectDetailPage() {
   const confirm = useConfirm();
   const { isAdmin, isAuthor } = useAuth();
   const homeId = new URLSearchParams(location.search).get('uid') || localStorage.getItem('examsync_user_id') || '';
-  const backToHome = `/?uid=${encodeURIComponent(homeId)}`;
+  const backToHome = `/student?uid=${encodeURIComponent(homeId)}`;
 
   const [activeTab, setActiveTab] = useState(() => {
     return location.state?.defaultTab || sessionStorage.getItem(`activeTab_${normalizedSubjectId}`) || 'roadmap';

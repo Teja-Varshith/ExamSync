@@ -145,7 +145,9 @@ export default function SubjectsPage() {
     <div className="page es-home">
       {/* ── App bar ── */}
       <header className="es-appbar">
-        <Logo size={30} />
+        <Link to="/" aria-label="Home" style={{ textDecoration: 'none', color: 'inherit', display: 'inline-flex', alignItems: 'center' }}>
+          <Logo size={30} />
+        </Link>
         {userCoins !== null && (
           <div className="es-coins" title="Your coin balance">
             <CoinIcon size={18} />
