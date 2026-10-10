@@ -1,5 +1,5 @@
 /** Branches a subject can belong to. Stored on the subject doc as `branches: string[]`. */
-export const BRANCHES = ['CSE', 'CS-AIML', 'CS-AIDS', 'IT'];
+export const BRANCHES = ['CSE', 'CS-AIML', 'CS-AIDS', 'IT', 'ECE'];
 
 /** Subjects created before branches existed have no field — they count as CSE-only. */
 export const DEFAULT_BRANCHES = ['CSE'];
